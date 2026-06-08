@@ -1,0 +1,211 @@
+/* =====================================================================
+   SISTEMA DE ESTILOS PREMIUM - PANTALLA DE INICIO DE SESIÓN (LOGIN)
+   ===================================================================== */
+
+.login-page-container {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #080c14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Círculos de luz neón de fondo para efecto de profundidad (Glow Ambient) */
+.glow-circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.12;
+  z-index: 1;
+}
+
+.gc-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--accent-indigo, #6366f1);
+  top: -10%;
+  left: 20%;
+}
+
+.gc-2 {
+  width: 350px;
+  height: 350px;
+  background: var(--accent-violet, #8b5cf6);
+  bottom: 10%;
+  right: 15%;
+}
+
+/* Tarjeta de Inicio de Sesión */
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 3rem 2.5rem;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+}
+
+.login-header {
+  text-align: center;
+}
+
+.login-logo {
+  font-size: 3rem;
+  filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.3));
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+.login-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.login-title span {
+  background: linear-gradient(135deg, #a5b4fc 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.login-subtitle {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin: 0.5rem 0 0 0;
+  line-height: 1.4;
+}
+
+/* Caja de Error */
+.login-error-box {
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #fca5a5;
+  line-height: 1.4;
+  box-sizing: border-box;
+}
+
+.error-box-icon {
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+/* Formulario */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.input-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
+.input-field {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 0.85rem 1rem 0.85rem 2.75rem;
+  color: #ffffff;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.input-field:focus + .input-icon,
+.input-wrapper:focus-within .input-icon {
+  color: #6366f1;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.loader-span {
+  opacity: 0.8;
+}
+
+.login-card-footer {
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  padding-top: 1rem;
+}
+
+.seed-tip {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.seed-tip code {
+  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+/* Animación Flotante del Semáforo Logo */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}

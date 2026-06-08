@@ -1,0 +1,33 @@
+# Node / React
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Python / FastAPI
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+ENV/
+env/
+
+# Databases
+backend/app/fallback.db
+*.db
+*.sqlite
+
+# Uploaded Media and Frames
+backend/app/uploads/*
+!backend/app/uploads/.gitkeep
+
+# Model weights (large files)
+*.pt
+
+# System / IDE
+.DS_Store
+.vscode/
+.idea/
+.gemini/

@@ -1,0 +1,678 @@
+/* =====================================================================
+   SISTEMA DE ESTILOS DASHBOARD DE REPORTES - MONITOREO VIAL
+   ===================================================================== */
+
+:root {
+  --bg-color: #080c14;
+  --panel-bg: rgba(15, 22, 42, 0.65);
+  --panel-border: rgba(255, 255, 255, 0.06);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  
+  --accent-indigo: #6366f1;
+  --accent-violet: #8b5cf6;
+  --accent-red: #ef4444;
+  --accent-orange: #f97316;
+  --accent-green: #10b981;
+  --accent-yellow: #f59e0b;
+  
+  --glass-blur: blur(18px);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-neon: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+}
+
+.report-page-container {
+  font-family: 'Inter', sans-serif;
+  color: var(--text-main);
+  background-color: var(--bg-color);
+  min-height: 100vh;
+  padding: 2.5rem 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* =====================================================================
+   1. SECCIÓN DE BÚSQUEDA Y LOGS RECIENTES
+   ===================================================================== */
+
+.search-section-panel {
+  width: 100%;
+  max-width: 1200px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-bar-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.search-input-wrapper {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+}
+
+.search-bar-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-muted);
+}
+
+.search-input-field {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 0.85rem 1rem 0.85rem 2.75rem;
+  color: #ffffff;
+  font-size: 0.9rem;
+  transition: var(--transition-smooth);
+}
+
+.search-input-field:focus {
+  outline: none;
+  border-color: var(--accent-indigo);
+  box-shadow: var(--shadow-glow);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.btn-search {
+  white-space: nowrap;
+  padding: 0.85rem 1.5rem;
+}
+
+/* Consultas Recientes */
+.recent-history-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  padding-top: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.history-label {
+  color: var(--text-muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.recent-badges-list {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.badge-recent-video {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: var(--transition-smooth);
+}
+
+.badge-recent-video:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #ffffff;
+}
+
+/* =====================================================================
+   2. ESTADOS VISUALES DEL BUSCADOR (LOADER / ERROR)
+   ===================================================================== */
+
+.card-idle-message {
+  width: 100%;
+  max-width: 800px;
+  padding: 4rem 2rem;
+  text-align: center;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.idle-decor-icon {
+  color: rgba(99, 102, 241, 0.25);
+  margin-bottom: 0.5rem;
+}
+
+.card-idle-message h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.35rem;
+  margin: 0;
+}
+
+.card-idle-message p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 550px;
+  margin: 0;
+}
+
+.card-loader-report {
+  width: 100%;
+  max-width: 600px;
+  padding: 4rem 2rem;
+  text-align: center;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.spinner-icon-report {
+  color: var(--accent-indigo);
+  animation: spin 1.5s linear infinite;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+}
+
+.card-loader-report h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.25rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.card-loader-report p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.card-error-report {
+  width: 100%;
+  max-width: 500px;
+  padding: 3rem 2rem;
+  text-align: center;
+  margin: 2rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.error-icon-report {
+  color: var(--accent-red);
+  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.3));
+}
+
+.card-error-report h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.error-msg-text {
+  font-size: 0.85rem;
+  color: #fca5a5;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* =====================================================================
+   3. DASHBOARD PRINCIPAL DE REPRODUCCIÓN E INSPECCIÓN
+   ===================================================================== */
+
+.report-dashboard-grid {
+  width: 100%;
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 900px) {
+  .report-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Reproductor Panel */
+.player-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.player-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 0.75rem;
+}
+
+.live-badge {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.red-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent-red);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent-red);
+  animation: pulse 1s infinite ease-in-out;
+}
+
+.player-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  margin: 0;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* CONTENEDOR MULTIMEDIA RELATIVO PARA DIBUJAR OVERLAYS */
+.media-container-relative {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #030712;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  position: relative;
+}
+
+.html5-video-player {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* CAPA FLOTANTE DE RECUADRO ROJO DE IA (BOUNDING BOX) */
+.ai-bounding-box-overlay {
+  position: absolute;
+  border: 2px solid var(--accent-red);
+  border-radius: 4px;
+  box-shadow: 0 0 15px var(--accent-red);
+  pointer-events: none; /* Dejar pasar los clicks a los controles del video */
+  z-index: 10;
+  box-sizing: border-box;
+  animation: border-alert-pulse 0.5s infinite ease-in-out;
+}
+
+.box-overlay-label {
+  position: absolute;
+  top: -20px;
+  left: -2px;
+  background: var(--accent-red);
+  color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 2px 2px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* BANNER DE ADVERTENCIA IA EN REPRODUCTOR */
+.ai-floating-alert-banner {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(239, 68, 68, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+  z-index: 10;
+  max-width: 90%;
+  box-sizing: border-box;
+}
+
+.alert-banner-icon {
+  color: #ffffff;
+  animation: pulse 1s infinite ease-in-out;
+}
+
+/* Player Footer Metrics */
+.player-footer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  background: rgba(0,0,0,0.25);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.footer-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.footer-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footer-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.code-font {
+  font-family: monospace;
+}
+
+.semaphore-indicator {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.semaphore-indicator.red-glow {
+  color: #fda4af;
+  text-shadow: 0 0 5px rgba(239, 68, 68, 0.4);
+}
+
+.semaphore-indicator.green-glow {
+  color: var(--accent-green);
+}
+
+/* Panel Inferior de Analíticas */
+.stats-lower-panel {
+  padding: 1.5rem;
+}
+
+.stats-lower-panel h4 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  margin: 0 0 1rem 0;
+  color: var(--accent-indigo);
+}
+
+.lower-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.lower-stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.font-small {
+  font-size: 0.75rem;
+}
+
+/* =====================================================================
+   4. SIDEBAR DE INFRACCIONES CON MINIATURAS FÍSICAS
+   ===================================================================== */
+
+.report-sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.report-violations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-height: 680px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Personalizar barra de scroll */
+.report-violations-list::-webkit-scrollbar {
+  width: 5px;
+}
+.report-violations-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.report-violations-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+.report-violations-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.clean-report-card {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.report-clean-icon {
+  color: var(--accent-green);
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.3));
+}
+
+.clean-report-card h4 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.clean-report-card p {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Tarjeta Sidebar de Infracción */
+.report-violation-card {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: var(--transition-smooth);
+}
+
+.report-violation-card:hover {
+  border-color: rgba(255,255,255,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+/* Estado Activo Sincronizado (Foco de Reproductor) */
+.report-violation-card.card-active-neon {
+  border-color: var(--accent-indigo);
+  background: rgba(99, 102, 241, 0.05);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+  transform: scale(1.01);
+}
+
+.report-card-body {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Contenedor de Miniatura Física (.jpg) */
+.evidence-thumbnail-container {
+  width: 90px;
+  height: 60px;
+  background: #000;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.evidence-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: var(--transition-smooth);
+}
+
+.evidence-thumbnail-container:hover .evidence-thumbnail-img {
+  transform: scale(1.1);
+}
+
+.thumbnail-hover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(3, 7, 18, 0.5);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition: var(--transition-smooth);
+}
+
+.evidence-thumbnail-container:hover .thumbnail-hover-overlay {
+  opacity: 1;
+}
+
+/* Detalle Textual Sidebar */
+.report-card-text {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0; /* Evita que el desbordamiento de texto rompa el Flexbox */
+}
+
+.report-card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.report-card-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.report-card-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.7rem;
+}
+
+.plate-badge-report {
+  font-family: monospace;
+  background: rgba(255,255,255,0.05);
+  color: #e2e8f0;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+}
+
+.conf-value-report {
+  color: var(--accent-indigo);
+  font-weight: 600;
+}
+
+/* Botón Saltar a Incidente */
+.btn-seek-incident {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+  padding: 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition: var(--transition-smooth);
+}
+
+.btn-seek-incident:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #a5b4fc;
+}
+
+.report-violation-card.card-active-neon .btn-seek-incident {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.3);
+  color: #ffffff;
+}
+
+.report-violation-card.card-active-neon .btn-seek-incident:hover {
+  background: var(--accent-indigo);
+}
+
+/* =====================================================================
+   DEFINICIÓN DE ANIMACIONES EXCLUSIVAS
+   ===================================================================== */
+
+@keyframes border-alert-pulse {
+  0%, 100% { border-color: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); }
+  50% { border-color: #fca5a5; box-shadow: 0 0 20px #fca5a5; }
+}
