@@ -147,6 +147,11 @@
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
+  width: 100%;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  box-sizing: border-box;
 }
 
 .dropzone:hover, .dropzone.drag-active {

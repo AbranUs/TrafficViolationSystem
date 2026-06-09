@@ -247,8 +247,9 @@ def update_centroid_tracker(state_tracker, current_detections, frame_idx):
 
 
 def generate_mock_license_plate() -> str:
-    letters = "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=3))
-    numbers = "".join(random.choices("0123456789", k=4))
+    cryptogen = random.SystemRandom()
+    letters = "".join(cryptogen.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=3))
+    numbers = "".join(cryptogen.choices("0123456789", k=4))
     return f"{letters}-{numbers}"
 
 

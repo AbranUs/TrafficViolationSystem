@@ -43,6 +43,27 @@ function Report() {
     }
   }, [])
 
+  // Cerrar lightbox con clic fuera u Escape para accesibilidad
+  useEffect(() => {
+    if (!activeLightbox) return
+    const handleOutsideClick = (e) => {
+      if (e.target.classList.contains('modal-overlay')) {
+        setActiveLightbox(null)
+      }
+    }
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setActiveLightbox(null)
+      }
+    }
+    window.addEventListener('click', handleOutsideClick)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('click', handleOutsideClick)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [activeLightbox])
+
   // Monitorear el tiempo de reproducción para sincronizar infracciones y bounding boxes
   const handleTimeUpdate = () => {
     if (!videoRef.current || !videoResult) return
@@ -332,7 +353,8 @@ function Report() {
                         <div className="report-card-body">
                           
                           {/* Miniatura física de evidencia (.jpg) */}
-                          <div 
+                          <button 
+                            type="button"
                             className="evidence-thumbnail-container"
                             onClick={() => setActiveLightbox(inf)}
                             title="Ampliar captura de pantalla de evidencia"
@@ -349,7 +371,7 @@ function Report() {
                             <div className="thumbnail-hover-overlay">
                               <Eye size={12} />
                             </div>
-                          </div>
+                          </button>
 
                           {/* Detalle Textual */}
                           <div className="report-card-text">
@@ -388,8 +410,8 @@ function Report() {
 
       {/* VISOR LIGHTBOX EMERGENTE DE ALTA RESOLUCIÓN */}
       {activeLightbox && (
-        <div className="modal-overlay animate-fade-in" onClick={() => setActiveLightbox(null)}>
-          <div className="modal-content glass-panel animate-scale-up" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay animate-fade-in">
+          <div className="modal-content glass-panel animate-scale-up">
             <header className="modal-header">
               <h3>Captura de Evidencia en Alta Resolución (OpenCV)</h3>
               <button className="btn-close-modal" onClick={() => setActiveLightbox(null)}>

@@ -4,6 +4,7 @@ import shutil
 import logging
 import datetime
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, Depends
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
 from app.db import videos_db, db_lock, get_db
 from app.services.ia_service import process_video
@@ -64,14 +65,18 @@ async def upload_video(
     saved_filename = f"{video_id}{file_ext}"
     video_path = os.path.join(UPLOAD_DIR, saved_filename)
     
-    # 4. Escribir el archivo en disco en bloques de 1MB para proteger la memoria RAM
+    # 4. Escribir el archivo en disco de forma asíncrona usando el pool de hilos
     try:
-        with open(video_path, "wb") as buffer:
-            while True:
-                chunk = await file.read(1024 * 1024)
-                if not chunk:
-                    break
-                buffer.write(chunk)
+        def save_upload_file(upload_file, destination):
+            with open(destination, "wb") as buffer:
+                upload_file.file.seek(0)
+                while True:
+                    chunk = upload_file.file.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    buffer.write(chunk)
+
+        await run_in_threadpool(save_upload_file, file, video_path)
     except Exception as e:
         logger.error(f"Error al escribir el archivo de video en disco: {e}")
         if os.path.exists(video_path):

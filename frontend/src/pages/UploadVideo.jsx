@@ -29,6 +29,27 @@ function UploadVideo() {
   const [activeEvidence, setActiveEvidence] = useState(null) // Guardará la infracción seleccionada para el modal
   const fileInputRef = useRef(null)
 
+  // Cerrar lightbox con clic fuera u Escape para accesibilidad
+  useEffect(() => {
+    if (!activeEvidence) return
+    const handleOutsideClick = (e) => {
+      if (e.target.classList.contains('modal-overlay')) {
+        setActiveEvidence(null)
+      }
+    }
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setActiveEvidence(null)
+      }
+    }
+    window.addEventListener('click', handleOutsideClick)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('click', handleOutsideClick)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [activeEvidence])
+
   // Manejar el arrastre de archivos (Drag & Drop)
   const handleDrag = (e) => {
     e.preventDefault()
@@ -196,7 +217,8 @@ function UploadVideo() {
             <h2 className="panel-title"><Zap size={20} className="glow-icon" /> Subir Video de Tránsito</h2>
             <p className="panel-desc">Cargue el video de la cámara vial (.mp4, .avi, .mov, .mkv) para iniciar el análisis automático cuadro a cuadro por Inteligencia Artificial.</p>
             
-            <div 
+            <button 
+              type="button"
               className={`dropzone ${dragActive ? 'drag-active' : ''}`}
               onDragEnter={handleDrag}
               onDragOver={handleDrag}
@@ -223,7 +245,7 @@ function UploadVideo() {
                   <p className="dropzone-sub-text">o haga clic para explorar sus archivos locales</p>
                 </div>
               )}
-            </div>
+            </button>
 
             {file && (
               <button className="btn-primary animate-pulse-btn" onClick={handleUpload}>
@@ -391,8 +413,8 @@ function UploadVideo() {
 
       {/* VISOR MODAL DE EVIDENCIA (GLASSMORPHISM OVERLAY) */}
       {activeEvidence && (
-        <div className="modal-overlay animate-fade-in" onClick={() => setActiveEvidence(null)}>
-          <div className="modal-content glass-panel animate-scale-up" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-overlay animate-fade-in">
+          <div className="modal-content glass-panel animate-scale-up">
             <header className="modal-header">
               <h3>Detección Física del Incidente</h3>
               <button className="btn-close-modal" onClick={() => setActiveEvidence(null)}>

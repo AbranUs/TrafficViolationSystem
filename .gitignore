@@ -31,3 +31,6 @@ backend/app/uploads/*
 .vscode/
 .idea/
 .gemini/
+
+# SonarQube Scanner
+.scannerwork/
