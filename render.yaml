@@ -35,4 +35,3 @@ databases:
   - name: traffic-violations-db
     plan: free
     databaseName: traffic_violations
-    user: postgres
