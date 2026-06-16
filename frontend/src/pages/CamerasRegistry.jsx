@@ -13,8 +13,9 @@ import {
   X
 } from 'lucide-react'
 import './CamerasRegistry.css'
+import { getBackendUrl } from '../utils/config.js'
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const BACKEND_URL = getBackendUrl()
 
 function CamerasRegistry() {
   const [cameras, setCameras] = useState([])
@@ -43,10 +44,12 @@ function CamerasRegistry() {
         axios.get(`${BACKEND_URL}/api/v1/videos/cameras/list`),
         axios.get(`${BACKEND_URL}/api/v1/videos/locations/list`)
       ])
-      setCameras(camerasRes.data)
-      setLocations(locationsRes.data)
-      if (locationsRes.data.length > 0) {
-        setNewCamera(prev => ({ ...prev, location_id: locationsRes.data[0].id }))
+      const camsData = Array.isArray(camerasRes.data) ? camerasRes.data : []
+      const locsData = Array.isArray(locationsRes.data) ? locationsRes.data : []
+      setCameras(camsData)
+      setLocations(locsData)
+      if (locsData.length > 0) {
+        setNewCamera(prev => ({ ...prev, location_id: locsData[0].id }))
       }
     } catch (err) {
       console.error('Error fetching cameras data:', err)
@@ -103,13 +106,13 @@ function CamerasRegistry() {
   }
 
   // Filter cameras
-  const filteredCameras = cameras.filter(cam => {
+  const filteredCameras = Array.isArray(cameras) ? cameras.filter(cam => {
     const locName = cam.location?.name?.toLowerCase() || ''
     const query = searchQuery.toLowerCase()
     return cam.ip_address.includes(query) || 
            cam.manufacturer?.toLowerCase().includes(query) || 
            locName.includes(query)
-  })
+  }) : []
 
   // Get status badge info
   const getStatusBadge = (status) => {

@@ -12,8 +12,9 @@ import {
   Percent
 } from 'lucide-react'
 import './DashboardStats.css'
+import { getBackendUrl } from '../utils/config.js'
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const BACKEND_URL = getBackendUrl()
 
 function DashboardStats() {
   const [stats, setStats] = useState(null)
@@ -47,7 +48,7 @@ function DashboardStats() {
 
   // Cálculos para Gráfico de Tendencia SVG (Línea de tendencias)
   const renderTrendChart = () => {
-    if (!stats || !stats.tendencia_historial || stats.tendencia_historial.length === 0) return null
+    if (!stats || !Array.isArray(stats.tendencia_historial) || stats.tendencia_historial.length === 0) return null
 
     const data = stats.tendencia_historial
     const width = 500
@@ -119,7 +120,7 @@ function DashboardStats() {
 
   // Gráfico de Barras SVG (Distribución de Infracciones)
   const renderBarChart = () => {
-    if (!stats || !stats.infraction_distribution || stats.infraction_distribution.length === 0) {
+    if (!stats || !Array.isArray(stats.infraction_distribution) || stats.infraction_distribution.length === 0) {
       return (
         <div className="empty-chart-fallback">
           <CheckCircle size={32} className="green-decor" />
@@ -261,7 +262,7 @@ function DashboardStats() {
                 </button>
               </div>
               
-              {stats.recent_infractions.length === 0 ? (
+              {(!stats.recent_infractions || stats.recent_infractions.length === 0) ? (
                 <div className="empty-log-fallback">
                   <CheckCircle size={32} className="green-decor" />
                   <p>No se registran infracciones en la base de datos.</p>
@@ -279,7 +280,7 @@ function DashboardStats() {
                       </tr>
                     </thead>
                     <tbody>
-                      {stats.recent_infractions.map((inf) => {
+                      {Array.isArray(stats.recent_infractions) && stats.recent_infractions.map((inf) => {
                         let rowClass = "row-badge-gray"
                         if (inf.tipo === "Cruce de semáforo en rojo") rowClass = "row-badge-red"
                         if (inf.tipo === "Giro prohibido") rowClass = "row-badge-violet"

@@ -19,8 +19,9 @@ import {
   RefreshCw
 } from 'lucide-react'
 import './CitizenSearch.css'
+import { getBackendUrl } from '../utils/config.js'
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const BACKEND_URL = getBackendUrl()
 
 function CitizenSearch() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -71,7 +72,7 @@ function CitizenSearch() {
         const response = await axios.get(`${BACKEND_URL}/api/v1/videos/citizens/search`, {
           params: { query: searchQuery }
         })
-        setSearchResults(response.data)
+        setSearchResults(Array.isArray(response.data) ? response.data : [])
       } catch (err) {
         console.error('Error searching citizens:', err)
       } finally {
@@ -195,7 +196,7 @@ function CitizenSearch() {
         </div>
 
         {/* Dropdown list results */}
-        {searchResults.length > 0 && (
+        {Array.isArray(searchResults) && searchResults.length > 0 && (
           <div className="search-results-dropdown glass-panel">
             {searchResults.map((owner) => (
               <button 
@@ -278,15 +279,15 @@ function CitizenSearch() {
 
               {/* VEHICLES SECTION */}
               <div className="citizen-vehicles-card-wrap">
-                <h3 className="section-title-citizen">Vehículos Patentados ({detailData.vehicles.length})</h3>
-                {detailData.vehicles.length === 0 ? (
+                <h3 className="section-title-citizen">Vehículos Patentados ({detailData && Array.isArray(detailData.vehicles) ? detailData.vehicles.length : 0})</h3>
+                {(!detailData.vehicles || detailData.vehicles.length === 0) ? (
                   <div className="glass-panel empty-subcard">
                     <Car size={24} style={{ color: '#64748b', marginBottom: '0.5rem' }} />
                     <p>No registra vehículos patentados.</p>
                   </div>
                 ) : (
                   <div className="vehicles-list-flex">
-                    {detailData.vehicles.map((veh) => (
+                    {Array.isArray(detailData.vehicles) && detailData.vehicles.map((veh) => (
                       <div key={veh.plate_number} className="glass-panel vehicle-subcard">
                         <div className="vehicle-header">
                           <Car size={16} className="car-icon-badge" />
@@ -319,9 +320,9 @@ function CitizenSearch() {
 
             {/* COLUMN 2: CITATIONS AND SANCTIONS */}
             <div className="citizen-citations-section">
-              <h3 className="section-title-citizen">Registro de Multas y Sanciones ({detailData.citations.length})</h3>
+              <h3 className="section-title-citizen">Registro de Multas y Sanciones ({detailData && Array.isArray(detailData.citations) ? detailData.citations.length : 0})</h3>
               
-              {detailData.citations.length === 0 ? (
+              {(!detailData.citations || detailData.citations.length === 0) ? (
                 <div className="glass-panel clean-citizen-card">
                   <CheckCircle size={48} className="clean-citizen-icon" />
                   <h4>Buen Comportamiento Vial</h4>
@@ -329,7 +330,7 @@ function CitizenSearch() {
                 </div>
               ) : (
                 <div className="citations-list-citizen">
-                  {detailData.citations.map((cit) => {
+                  {Array.isArray(detailData.citations) && detailData.citations.map((cit) => {
                     const fineAmount = getFineCost(cit.infraction?.tipo, cit.fine_amount)
 
                     return (

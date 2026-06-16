@@ -16,8 +16,9 @@ import {
   DollarSign
 } from 'lucide-react'
 import './InfractionHistory.css'
+import { getBackendUrl } from '../utils/config.js'
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const BACKEND_URL = getBackendUrl()
 
 function InfractionHistory() {
   const [infractions, setInfractions] = useState([])
@@ -66,7 +67,7 @@ function InfractionHistory() {
           tipo: selectedType || undefined
         }
       })
-      setInfractions(response.data)
+      setInfractions(Array.isArray(response.data) ? response.data : [])
     } catch (err) {
       console.error('Error fetching infractions:', err)
       setError('Error al conectar con la base de datos de infracciones.')
@@ -100,9 +101,9 @@ function InfractionHistory() {
   }
 
   // Filter infractions in frontend by confidence slider on top of backend filters
-  const filteredInfractions = infractions.filter(inf => 
+  const filteredInfractions = Array.isArray(infractions) ? infractions.filter(inf => 
     (inf.confianza * 100) >= minConfidence
-  )
+  ) : []
 
   return (
     <div className="history-page-container">

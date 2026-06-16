@@ -2,8 +2,9 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import { Lock, User as UserIcon, LogIn, AlertOctagon } from 'lucide-react'
 import './Login.css'
+import { getBackendUrl } from '../utils/config.js'
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const BACKEND_URL = getBackendUrl()
 
 function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('')

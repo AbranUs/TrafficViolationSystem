@@ -16,8 +16,9 @@ import {
   Calendar
 } from 'lucide-react'
 import './AuditControl.css'
+import { getBackendUrl } from '../utils/config.js'
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const BACKEND_URL = getBackendUrl()
 
 function AuditControl() {
   const [activeSubTab, setActiveSubTab] = useState('officers') // 'officers', 'ai', 'logs'
@@ -43,20 +44,22 @@ function AuditControl() {
     try {
       if (activeSubTab === 'officers') {
         const response = await axios.get(`${BACKEND_URL}/api/v1/videos/officers/list`)
-        setOfficers(response.data)
+        setOfficers(Array.isArray(response.data) ? response.data : [])
       } else if (activeSubTab === 'ai') {
         const [modelsRes, jobsRes] = await Promise.all([
           axios.get(`${BACKEND_URL}/api/v1/videos/ai-models/list`),
           axios.get(`${BACKEND_URL}/api/v1/videos/processing-jobs/list`)
         ])
-        setAiModels(modelsRes.data)
-        setJobs(jobsRes.data)
-        if (jobsRes.data.length > 0 && !activeJobLogs) {
-          setActiveJobLogs(jobsRes.data[0])
+        const modelsData = Array.isArray(modelsRes.data) ? modelsRes.data : []
+        const jobsData = Array.isArray(jobsRes.data) ? jobsRes.data : []
+        setAiModels(modelsData)
+        setJobs(jobsData)
+        if (jobsData.length > 0 && !activeJobLogs) {
+          setActiveJobLogs(jobsData[0])
         }
       } else if (activeSubTab === 'logs') {
         const response = await axios.get(`${BACKEND_URL}/api/v1/videos/audit-logs/list`)
-        setAuditLogs(response.data)
+        setAuditLogs(Array.isArray(response.data) ? response.data : [])
       }
     } catch (err) {
       console.error('Error fetching audit details:', err)
@@ -71,18 +74,18 @@ function AuditControl() {
   }, [activeSubTab])
 
   // Filtered officers list
-  const filteredOfficers = officers.filter(off => 
-    off.name.toLowerCase().includes(officerSearch.toLowerCase()) || 
-    off.badge_number.includes(officerSearch) || 
+  const filteredOfficers = Array.isArray(officers) ? officers.filter(off => 
+    (off.name && off.name.toLowerCase().includes(officerSearch.toLowerCase())) || 
+    (off.badge_number && off.badge_number.includes(officerSearch)) || 
     (off.rank && off.rank.toLowerCase().includes(officerSearch.toLowerCase()))
-  )
+  ) : []
 
   // Filtered audit logs list
-  const filteredLogs = auditLogs.filter(log => 
-    log.action.toLowerCase().includes(logSearch.toLowerCase()) || 
-    log.table_name.toLowerCase().includes(logSearch.toLowerCase()) || 
+  const filteredLogs = Array.isArray(auditLogs) ? auditLogs.filter(log => 
+    (log.action && log.action.toLowerCase().includes(logSearch.toLowerCase())) || 
+    (log.table_name && log.table_name.toLowerCase().includes(logSearch.toLowerCase())) || 
     (log.details && log.details.toLowerCase().includes(logSearch.toLowerCase()))
-  )
+  ) : []
 
   return (
     <div className="audit-page-container">
@@ -218,7 +221,7 @@ function AuditControl() {
                 <div className="ai-models-catalog">
                   <h3 className="section-title-citizen" style={{ marginBottom: '1rem' }}><Cpu size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Catálogo de Modelos Activos</h3>
                   <div className="ai-models-grid">
-                    {aiModels.map((model) => (
+                    {Array.isArray(aiModels) && aiModels.map((model) => (
                       <div key={model.id} className="glass-panel ai-model-card">
                         <div className="model-header">
                           <Cpu size={18} className="icon-indigo" />
@@ -240,7 +243,7 @@ function AuditControl() {
                   <div className="ai-jobs-list-panel">
                     <h3 className="section-title-citizen" style={{ marginBottom: '1rem' }}><Clock size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} /> Historial de Procesamientos</h3>
                     <div className="jobs-scroller">
-                      {jobs.map((job) => {
+                      {Array.isArray(jobs) && jobs.map((job) => {
                         const isActive = activeJobLogs && activeJobLogs.id === job.id
                         return (
                           <button 

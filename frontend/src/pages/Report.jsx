@@ -17,8 +17,9 @@ import {
   X
 } from 'lucide-react'
 import './Report.css'
+import { getBackendUrl } from '../utils/config.js'
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const BACKEND_URL = getBackendUrl()
 
 function Report() {
   const [searchId, setSearchId] = useState('')
@@ -174,7 +175,7 @@ function Report() {
           </button>
         </div>
 
-        {recentVideos.length > 0 && (
+        {Array.isArray(recentVideos) && recentVideos.length > 0 && (
           <div className="recent-history-row">
             <span className="history-label"><History size={13} /> Consultas Recientes:</span>
             <div className="recent-badges-list">
@@ -328,7 +329,7 @@ function Report() {
             <div className="report-sidebar-section">
               <h3 className="section-title">Evidencias Guardadas ({videoResult.infractions.length})</h3>
               
-              {videoResult.infractions.length === 0 ? (
+              {(!videoResult.infractions || videoResult.infractions.length === 0) ? (
                 <div className="glass-panel clean-report-card">
                   <CheckCircle size={40} className="report-clean-icon" />
                   <h4>Video Libre de Multas</h4>
@@ -336,7 +337,7 @@ function Report() {
                 </div>
               ) : (
                 <div className="report-violations-list">
-                  {videoResult.infractions.map((inf) => {
+                  {Array.isArray(videoResult.infractions) && videoResult.infractions.map((inf) => {
                     // Verificar si esta infracción está activa según el tiempo actual del reproductor
                     const isCurrentlyActive = activeInfraction && activeInfraction.id === inf.id
                     

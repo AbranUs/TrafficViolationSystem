@@ -15,8 +15,9 @@ import {
   AlertOctagon
 } from 'lucide-react'
 import './UploadVideo.css'
+import { getBackendUrl } from '../utils/config.js'
 
-const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const BACKEND_URL = getBackendUrl()
 
 function UploadVideo() {
   const [file, setFile] = useState(null)
@@ -371,7 +372,7 @@ function UploadVideo() {
               <div className="violations-list-section">
                 <h3 className="section-title">Infracciones Detectadas por Cuadros</h3>
                 
-                {videoResult.infractions.length === 0 ? (
+                {(!videoResult.infractions || videoResult.infractions.length === 0) ? (
                   <div className="glass-panel no-violations-card">
                     <CheckCircle size={48} className="clean-icon" />
                     <h4>¡Buen Comportamiento Vial!</h4>
@@ -379,7 +380,7 @@ function UploadVideo() {
                   </div>
                 ) : (
                   <div className="violations-grid">
-                    {videoResult.infractions.map((inf) => {
+                    {Array.isArray(videoResult.infractions) && videoResult.infractions.map((inf) => {
                       // Determinar el color del badge y estilo según tipo
                       let badgeClass = "badge-gray"
                       if (inf.tipo === "Cruce de semáforo en rojo") badgeClass = "badge-red"
