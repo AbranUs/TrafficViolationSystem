@@ -26,6 +26,13 @@ def get_yolo_model() -> Optional[Any]:
     Retorna la instancia del modelo YOLO o None si falla.
     """
     global _yolo_model, _yolo_failed
+    
+    if os.getenv("DISABLE_YOLO", "false").lower() == "true":
+        if not _yolo_failed:
+            logger.info("[YOLO] Detección por modelo YOLO desactivada por variable de entorno (modo de bajos recursos).")
+            _yolo_failed = True
+        return None
+
     if _yolo_model is None and not _yolo_failed:
         try:
             from ultralytics import YOLO

@@ -313,3 +313,18 @@ async def get_audit_logs(db: Session = Depends(get_db)) -> List[AuditLog]:
     """
     logger.info("Obteniendo registro de auditoría de seguridad.")
     return db.query(AuditLog).order_by(AuditLog.timestamp.desc()).all()
+
+@router.get("/debug/list-videos")
+async def debug_list_videos(db: Session = Depends(get_db)):
+    videos = db.query(Video).order_by(Video.fecha_subida.desc()).all()
+    return [
+        {
+            "id": v.id,
+            "nombre_archivo": v.nombre_archivo,
+            "status": v.status,
+            "error_message": v.error_message,
+            "tiempo_procesamiento_segundos": v.tiempo_procesamiento_segundos,
+            "fecha_subida": v.fecha_subida
+        }
+        for v in videos
+    ]

@@ -304,12 +304,20 @@ def process_video(video_path: str, video_id: str) -> None:
         frame_idx = 0
         start_time = time.time()
         
+        # Factor de salto de fotogramas para optimizar velocidad y memoria en Render (procesa ~3 FPS en videos de 30 FPS)
+        FRAME_SKIP = 10
+        
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
                 break
                 
             _update_traffic_light_state(state_tracker)
+            
+            if frame_idx % FRAME_SKIP != 0:
+                frame_idx += 1
+                continue
+                
             current_detections = predict_frame(frame, frame_idx, state_tracker, width, height)
             
             # Actualización dinámica del estado del semáforo si el modelo detecta luces reales
