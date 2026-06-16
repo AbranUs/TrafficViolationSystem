@@ -34,3 +34,9 @@ backend/app/uploads/*
 
 # SonarQube Scanner
 .scannerwork/
+
+# Testing & Coverage
+.coverage
+coverage.xml
+htmlcov/
+
