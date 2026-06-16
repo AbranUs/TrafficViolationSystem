@@ -18,11 +18,9 @@ services:
   # 2. Frontend Static Site (Vite React)
   - type: static
     name: traffic-violations-frontend
-    env: static
-    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishDir: dist
+    publishPath: dist
     envVars:
       - key: VITE_API_URL
         value: ${traffic_violations_backend.url}
