@@ -40,6 +40,8 @@ app.include_router(analytics_router, prefix="/api/v1/analytics", tags=["Estadís
 # Montar carpeta de subidas estáticamente para servir fotogramas e imágenes de evidencia al frontend
 base_dir = os.path.dirname(os.path.abspath(__file__))
 uploads_dir = os.path.join(base_dir, "uploads")
+os.makedirs(uploads_dir, exist_ok=True)
+os.makedirs(os.path.join(uploads_dir, "frames"), exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
 @app.get("/", tags=["Health Check"])
