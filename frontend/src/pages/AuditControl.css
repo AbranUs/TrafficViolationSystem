@@ -1,0 +1,255 @@
+/* ESTILOS PARA LA PESTAÑA DE CONTROL Y AUDITORÍA */
+
+.audit-page-container {
+  padding: 1.5rem 2rem;
+  max-width: 1300px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Navbar de Pestañas Secundarias */
+.audit-tabs-navbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.75rem;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.audit-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.3s ease;
+}
+
+.audit-tab-btn:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.active-audit-tab {
+  background: rgba(99, 102, 241, 0.12) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  color: #a5b4fc !important;
+}
+
+.btn-audit-refresh {
+  margin-left: auto;
+}
+
+@media (max-width: 650px) {
+  .btn-audit-refresh {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+.audit-controls-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1.25rem !important;
+}
+
+.results-counter {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.results-counter strong {
+  color: #cbd5e1;
+}
+
+.log-details-cell {
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.8rem !important;
+  color: #94a3b8 !important;
+}
+
+/* =====================================================================
+   SECCIÓN DE MODELOS DE IA Y TRABAJOS DE PROCESAMIENTO
+   ===================================================================== */
+
+.ai-audit-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.ai-models-catalog {
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-models-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.ai-model-card {
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.model-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.model-name-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.model-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+/* Jobs and Console */
+.ai-jobs-and-console-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .ai-jobs-and-console-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ai-jobs-list-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.jobs-scroller {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+.job-item-btn {
+  width: 100%;
+  padding: 1rem !important;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.job-item-btn:hover {
+  border-color: rgba(99, 102, 241, 0.2);
+  background: rgba(15, 23, 42, 0.5) !important;
+}
+
+.active-job-btn {
+  border-color: #6366f1 !important;
+  background: rgba(99, 102, 241, 0.08) !important;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+}
+
+.job-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.job-id-text {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+/* Consola Simuladora */
+.ai-console-logs-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.console-box {
+  background: #030712;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  height: 380px;
+}
+
+.console-header {
+  background: #0f172a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.console-dot-decor {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.console-dot-decor.red { background: #ef4444; }
+.console-dot-decor.yellow { background: #f59e0b; }
+.console-dot-decor.green { background: #10b981; }
+
+.console-title-text {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-family: monospace;
+  margin-left: 0.5rem;
+}
+
+.console-body {
+  padding: 1rem;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.console-pre-text {
+  margin: 0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.75rem;
+  color: #34d399; /* Console text in green */
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

@@ -3,12 +3,19 @@ import uuid
 import shutil
 import logging
 import datetime
+from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, Depends
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
-from app.db import videos_db, db_lock, get_db
+from app.db import get_db
 from app.services.ia_service import process_video
-from app.models.models import Video, Infraccion, VideoUploadResponse, VideoStatusResponse
+from app.models.models import (
+    Video, Infraction, VideoUploadResponse, VideoStatusResponse, InfractionSchema,
+    Camera, District, VehicleOwner, Vehicle, Citation, OwnerVehicle, Location,
+    CameraSchema, CameraCreateSchema, DistrictSchema, VehicleOwnerSchema, OwnerDetailSchema, LocationSchema,
+    Officer, AIModel, ProcessingJob, AuditLog,
+    OfficerSchema, AIModelSchema, ProcessingJobSchema, AuditLogSchema
+)
 
 # Configuración básica de logging
 logging.basicConfig(level=logging.INFO)
@@ -93,29 +100,22 @@ async def upload_video(
         db_video = Video(
             id=video_id,
             nombre_archivo=file.filename,
+            ruta_archivo=video_path,
             status="procesando"
         )
         db.add(db_video)
         db.commit()
         db.refresh(db_video)
         logger.info(f"[DB] Registro de video '{video_id}' guardado correctamente en SQL.")
-    except Exception as e:
-        logger.error(f"[DB] No se pudo guardar el registro de video en SQL ({e}). Usando fallback local.")
+    except Exception:
+        logger.exception("[DB] No se pudo guardar el registro de video en SQL.")
         db.rollback()
-
-    # 6. Registrar en la base de datos mock local de compatibilidad
-    with db_lock:
-        videos_db[video_id] = {
-            "video_id": video_id,
-            "filename": file.filename,
-            "saved_path": video_path,
-            "status": "procesando",
-            "infracciones": [],
-            "error_message": None,
-            "tiempo_procesamiento_segundos": None
-        }
+        raise HTTPException(
+            status_code=500,
+            detail="Error al guardar el registro del video en la base de datos."
+        )
         
-    # 7. Agendar la tarea de procesamiento de IA en segundo plano
+    # 6. Agendar la tarea de procesamiento de IA en segundo plano
     background_tasks.add_task(process_video, video_path, video_id)
     
     logger.info(f"Video guardado y encolado exitosamente. ID asignado: {video_id}")
@@ -127,64 +127,189 @@ async def upload_video(
         "message": "Video subido con éxito. El análisis de IA se ha iniciado en segundo plano."
     }
 
-@router.get("/infracciones/{video_id}", response_model=VideoStatusResponse)
-async def get_infracciones(video_id: str, db: Session = Depends(get_db)):
+@router.get("/infractions/{video_id}", response_model=VideoStatusResponse)
+async def get_infractions(video_id: str, db: Session = Depends(get_db)) -> dict:
     """
     Retorna el estado actual y el JSON con la relación completa de infracciones
-    detectadas consultando la base de datos SQL o el almacén local en memoria.
+    detectadas consultando la base de datos SQL relacional.
     """
     logger.info(f"Petición de consulta de infracciones recibida para el video_id: {video_id}")
     
-    # 1. Intentar consultar en la base de datos SQL relacional (PostgreSQL/SQLite)
     try:
         video_data = db.query(Video).filter(Video.id == video_id).first()
-        if video_data:
-            # Pydantic serializa de forma automática el objeto SQLAlchemy y su lista
-            # de Infracciones relacionada gracias a Config.from_attributes = True
-            return {
-                "video_id": video_data.id,
-                "nombre_archivo": video_data.nombre_archivo,
-                "fecha_subida": video_data.fecha_subida,
-                "status": video_data.status,
-                "infracciones": video_data.infracciones,
-                "error_message": video_data.error_message,
-                "tiempo_procesamiento_segundos": video_data.tiempo_procesamiento_segundos
-            }
-    except Exception as e:
-        logger.error(f"[DB] Error consultando la base de datos relacional ({e}). Intentando fallback local.")
+        if not video_data:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No se encontró ningún video con el ID '{video_id}' en nuestro sistema."
+            )
+            
+        return {
+            "video_id": video_data.id,
+            "nombre_archivo": video_data.nombre_archivo,
+            "fecha_subida": video_data.fecha_subida,
+            "status": video_data.status,
+            "infractions": video_data.infractions,
+            "error_message": video_data.error_message,
+            "tiempo_procesamiento_segundos": video_data.tiempo_procesamiento_segundos
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("[DB] Error consultando la base de datos relacional.")
+        raise HTTPException(
+            status_code=500,
+            detail="Error interno del servidor al consultar la base de datos."
+        )
 
-    # 2. Fallback a la base de datos local en memoria
-    with db_lock:
-        mem_video = videos_db.get(video_id)
+@router.get("/all-infractions", response_model=List[InfractionSchema])
+async def get_all_infractions(
+    placa: Optional[str] = None,
+    tipo: Optional[str] = None,
+    db: Session = Depends(get_db)
+) -> List[Infraction]:
+    """
+    Retorna todas las infracciones registradas en la base de datos,
+    permitiendo búsquedas globales por número de placa o por tipo de infracción.
+    """
+    logger.info(f"Petición de listado general de infracciones. Filtros -> placa: {placa}, tipo: {tipo}")
+    try:
+        query = db.query(Infraction)
+        if placa:
+            query = query.filter(Infraction.placa_vehiculo.ilike(f"%{placa}%"))
+        if tipo:
+            query = query.filter(Infraction.tipo == tipo)
         
-    if not mem_video:
+        return query.order_by(Infraction.timestamp.desc()).all()
+    except Exception as e:
+        logger.error(f"[DB] Error recuperando listado de infracciones: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Error al recuperar el listado de infracciones desde la base de datos."
+        )
+
+@router.get("/cameras/list", response_model=List[CameraSchema])
+async def get_cameras(db: Session = Depends(get_db)) -> List[Camera]:
+    """
+    Retorna la lista completa de todas las cámaras viales registradas.
+    """
+    logger.info("Obteniendo lista de cámaras de tráfico.")
+    return db.query(Camera).all()
+
+@router.post("/cameras/add", response_model=CameraSchema, status_code=201)
+async def add_camera(payload: CameraCreateSchema, db: Session = Depends(get_db)) -> Camera:
+    """
+    Registra una nueva cámara vial en la base de datos vinculada a una ubicación/intersección.
+    """
+    logger.info(f"Registrando nueva cámara de tráfico en la dirección IP: {payload.ip_address}")
+    cam_id = str(uuid.uuid4())
+    db_camera = Camera(
+        id=cam_id,
+        ip_address=payload.ip_address,
+        resolution=payload.resolution,
+        status=payload.status,
+        manufacturer=payload.manufacturer,
+        location_id=payload.location_id
+    )
+    db.add(db_camera)
+    try:
+        db.commit()
+        db.refresh(db_camera)
+        logger.info(f"Cámara de tráfico registrada con ID: {cam_id}")
+        return db_camera
+    except Exception as e:
+        db.rollback()
+        logger.error(f"[DB] Error al registrar la cámara en la base de datos: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al registrar la cámara en la base de datos: {str(e)}"
+        )
+
+@router.get("/districts/list", response_model=List[DistrictSchema])
+async def get_districts(db: Session = Depends(get_db)) -> List[District]:
+    """
+    Retorna la lista de distritos viales disponibles.
+    """
+    logger.info("Obteniendo lista de distritos viales.")
+    return db.query(District).all()
+
+@router.get("/locations/list", response_model=List[LocationSchema])
+async def get_locations(db: Session = Depends(get_db)) -> List[Location]:
+    """
+    Retorna la lista de intersecciones viales disponibles.
+    """
+    logger.info("Obteniendo lista de intersecciones viales.")
+    return db.query(Location).all()
+
+@router.get("/citizens/search", response_model=List[VehicleOwnerSchema])
+async def search_citizens(query: str, db: Session = Depends(get_db)) -> List[VehicleOwner]:
+    """
+    Realiza una búsqueda de ciudadanos/propietarios por DNI o Nombre Completo.
+    """
+    logger.info(f"Buscando ciudadanos con query: '{query}'")
+    if not query.strip():
+        return []
+    
+    return db.query(VehicleOwner).filter(
+        (VehicleOwner.owner_id.ilike(f"%{query}%")) | 
+        (VehicleOwner.full_name.ilike(f"%{query}%"))
+    ).all()
+
+@router.get("/citizens/detail/{owner_id}", response_model=OwnerDetailSchema)
+async def get_citizen_detail(owner_id: str, db: Session = Depends(get_db)) -> dict:
+    """
+    Devuelve los detalles de perfil de un propietario, sus vehículos registrados
+    y su historial de citaciones oficiales con multas.
+    """
+    logger.info(f"Obteniendo detalles del ciudadano ID: {owner_id}")
+    owner = db.query(VehicleOwner).filter(VehicleOwner.owner_id == owner_id).first()
+    if not owner:
         raise HTTPException(
             status_code=404,
-            detail=f"No se encontró ningún video con el ID '{video_id}' en nuestro sistema."
+            detail=f"No se encontró ningún propietario con DNI/ID '{owner_id}'"
         )
-        
-    # Adaptar del diccionario local en memoria al esquema de respuesta VideoStatusResponse
-    mapped_infracciones = []
-    for inf in mem_video["infracciones"]:
-        # Asegurar compatibilidad de campos renombrados en la respuesta Pydantic
-        mapped_infracciones.append({
-            "id": inf.get("id") or inf.get("infraccion_id"),
-            "video_id": video_id,
-            "tipo": inf["tipo"],
-            "frame_path": inf.get("frame_path", ""),
-            "timestamp": inf.get("timestamp") or inf.get("timestamp_segundos", 0.0),
-            "descripcion": inf["descripcion"],
-            "placa_vehiculo": inf.get("placa_vehiculo"),
-            "confianza": inf["confianza"],
-            "caja_delimitadora": inf["caja_delimitadora"]
-        })
-
+    
+    # Obtener vehículos del propietario mediante la tabla de asociación
+    vehicles_query = db.query(Vehicle).join(
+        OwnerVehicle, Vehicle.plate_number == OwnerVehicle.plate_number
+    ).filter(OwnerVehicle.owner_id == owner_id).all()
+    
+    # Obtener citaciones/multas oficiales registradas para este ciudadano
+    citations = db.query(Citation).filter(Citation.owner_id == owner_id).all()
+    
     return {
-        "video_id": mem_video["video_id"],
-        "nombre_archivo": mem_video["filename"],
-        "fecha_subida": datetime.datetime.now(datetime.timezone.utc),
-        "status": mem_video["status"],
-        "infracciones": mapped_infracciones,
-        "error_message": mem_video.get("error_message"),
-        "tiempo_procesamiento_segundos": mem_video.get("tiempo_procesamiento_segundos")
+        "owner": owner,
+        "vehicles": vehicles_query,
+        "citations": citations
     }
+
+@router.get("/officers/list", response_model=List[OfficerSchema])
+async def get_officers(db: Session = Depends(get_db)) -> List[Officer]:
+    """
+    Retorna la lista de agentes de tránsito asignados al control vial.
+    """
+    logger.info("Obteniendo lista de agentes de tránsito.")
+    return db.query(Officer).all()
+
+@router.get("/ai-models/list", response_model=List[AIModelSchema])
+async def get_ai_models(db: Session = Depends(get_db)) -> List[AIModel]:
+    """
+    Retorna el catálogo de modelos de inteligencia artificial y su precisión.
+    """
+    logger.info("Obteniendo catálogo de modelos de IA.")
+    return db.query(AIModel).all()
+
+@router.get("/processing-jobs/list", response_model=List[ProcessingJobSchema])
+async def get_processing_jobs(db: Session = Depends(get_db)) -> List[ProcessingJob]:
+    """
+    Retorna la cola de trabajos de IA con sus logs técnicos correspondientes.
+    """
+    logger.info("Obteniendo cola de trabajos de procesamiento.")
+    return db.query(ProcessingJob).order_by(ProcessingJob.start_time.desc()).all()
+
+@router.get("/audit-logs/list", response_model=List[AuditLogSchema])
+async def get_audit_logs(db: Session = Depends(get_db)) -> List[AuditLog]:
+    """
+    Retorna el registro completo de logs de auditoría para la seguridad del sistema.
+    """
+    logger.info("Obteniendo registro de auditoría de seguridad.")
+    return db.query(AuditLog).order_by(AuditLog.timestamp.desc()).all()

@@ -119,7 +119,7 @@ function DashboardStats() {
 
   // Gráfico de Barras SVG (Distribución de Infracciones)
   const renderBarChart = () => {
-    if (!stats || !stats.distribucion_infracciones || stats.distribucion_infracciones.length === 0) {
+    if (!stats || !stats.infraction_distribution || stats.infraction_distribution.length === 0) {
       return (
         <div className="empty-chart-fallback">
           <CheckCircle size={32} className="green-decor" />
@@ -128,7 +128,7 @@ function DashboardStats() {
       )
     }
 
-    const data = stats.distribucion_infracciones
+    const data = stats.infraction_distribution
     const maxVal = Math.max(...data.map(d => d.count), 1)
 
     return (
@@ -215,7 +215,7 @@ function DashboardStats() {
               </div>
               <div className="metric-text-wrap">
                 <span className="metric-lbl">Multas Detectadas</span>
-                <span className="metric-val color-alert">{stats.total_infracciones}</span>
+                <span className="metric-val color-alert">{stats.total_infractions}</span>
               </div>
             </div>
 
@@ -261,7 +261,7 @@ function DashboardStats() {
                 </button>
               </div>
               
-              {stats.ultimas_infracciones.length === 0 ? (
+              {stats.recent_infractions.length === 0 ? (
                 <div className="empty-log-fallback">
                   <CheckCircle size={32} className="green-decor" />
                   <p>No se registran infracciones en la base de datos.</p>
@@ -279,7 +279,7 @@ function DashboardStats() {
                       </tr>
                     </thead>
                     <tbody>
-                      {stats.ultimas_infracciones.map((inf) => {
+                      {stats.recent_infractions.map((inf) => {
                         let rowClass = "row-badge-gray"
                         if (inf.tipo === "Cruce de semáforo en rojo") rowClass = "row-badge-red"
                         if (inf.tipo === "Giro prohibido") rowClass = "row-badge-violet"

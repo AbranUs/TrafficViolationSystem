@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi.testclient import TestClient
 from app.main import app
-from app.db import Base, engine, videos_db
+from app.db import Base, engine
 from scratch.generate_test_video import generate_synthetic_video
 
 # Garantizar que las tablas de base de datos se inicialicen antes de iniciar las pruebas
@@ -112,8 +112,18 @@ def test_upload_and_process_real_cv_flow():
             os.remove(TEST_VIDEO_PATH)
             
         # Limpiar el archivo de uploads guardado por la ruta y sus fotogramas
-        saved_path = videos_db[video_id]["saved_path"]
-        if os.path.exists(saved_path):
+        from app.db import SessionLocal
+        from app.models.models import Video
+        db_session = SessionLocal()
+        saved_path = None
+        try:
+            video_rec = db_session.query(Video).filter(Video.id == video_id).first()
+            if video_rec:
+                saved_path = video_rec.ruta_archivo
+        finally:
+            db_session.close()
+            
+        if saved_path and os.path.exists(saved_path):
             os.remove(saved_path)
             
         # Limpiar los frames guardados en disco
@@ -127,9 +137,10 @@ def test_upload_and_process_real_cv_flow():
         if os.path.exists(frames_dir) and not os.listdir(frames_dir):
             os.rmdir(frames_dir)
             
-        uploads_dir = os.path.dirname(saved_path)
-        if os.path.exists(uploads_dir) and not os.listdir(uploads_dir):
-            os.rmdir(uploads_dir)
+        if saved_path:
+            uploads_dir = os.path.dirname(saved_path)
+            if os.path.exists(uploads_dir) and not os.listdir(uploads_dir):
+                os.rmdir(uploads_dir)
             
         # Eliminar el archivo de base de datos SQLite fallback generado por el test
         app_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "app")

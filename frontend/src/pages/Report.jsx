@@ -71,7 +71,7 @@ function Report() {
     setCurrentTime(time)
 
     // Buscar si hay alguna infracción ocurriendo en la marca de tiempo actual (ventana de 2 segundos)
-    const active = videoResult.infracciones.find(inf => 
+    const active = videoResult.infractions.find(inf => 
       time >= inf.timestamp && time <= inf.timestamp + 2.0
     )
     
@@ -88,7 +88,7 @@ function Report() {
     setActiveInfraction(null)
 
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/v1/videos/infracciones/${id}`)
+      const response = await axios.get(`${BACKEND_URL}/api/v1/videos/infractions/${id}`)
       const data = response.data
       
       setVideoResult(data)
@@ -326,9 +326,9 @@ function Report() {
 
             {/* COLUMNA DERECHA: SIDEBAR DE INFRACCIONES CON MINIATURA */}
             <div className="report-sidebar-section">
-              <h3 className="section-title">Evidencias Guardadas ({videoResult.infracciones.length})</h3>
+              <h3 className="section-title">Evidencias Guardadas ({videoResult.infractions.length})</h3>
               
-              {videoResult.infracciones.length === 0 ? (
+              {videoResult.infractions.length === 0 ? (
                 <div className="glass-panel clean-report-card">
                   <CheckCircle size={40} className="report-clean-icon" />
                   <h4>Video Libre de Multas</h4>
@@ -336,7 +336,7 @@ function Report() {
                 </div>
               ) : (
                 <div className="report-violations-list">
-                  {videoResult.infracciones.map((inf) => {
+                  {videoResult.infractions.map((inf) => {
                     // Verificar si esta infracción está activa según el tiempo actual del reproductor
                     const isCurrentlyActive = activeInfraction && activeInfraction.id === inf.id
                     

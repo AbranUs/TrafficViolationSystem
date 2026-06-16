@@ -1,158 +1,490 @@
 import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from sqlalchemy import Column, String, Float, DateTime, ForeignKey, JSON, func
+from sqlalchemy import Column, String, Float, DateTime, ForeignKey, JSON, func, Integer, Double, Date, Boolean, Table
 from sqlalchemy.orm import relationship
 from app.db import Base
 
 # =====================================================================
-# 1. MODELOS DE SQLALCHEMY (ORM para persistencia relacional)
+# TABLAS DE ASOCIACIÓN Y RELACIÓN DE MUCHOS A MUCHOS
 # =====================================================================
 
-class Video(Base):
-    """
-    Modelo ORM que mapea la tabla física de Videos cargados en el sistema.
-    """
-    __tablename__ = "videos"
+user_roles = Table(
+    'user_roles',
+    Base.metadata,
+    Column('user_id', String(36), ForeignKey('users.id', ondelete='CASCADE'), primary_key=True),
+    Column('role_id', String(36), ForeignKey('roles.id', ondelete='CASCADE'), primary_key=True)
+)
 
+
+# =====================================================================
+# 1. MODELOS DE SQLALCHEMY (ORM)
+# =====================================================================
+
+class Role(Base):
+    __tablename__ = "roles"
+    id = Column(String(36), primary_key=True, index=True)
+    name = Column(String(100), unique=True, nullable=False)
+
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(String(36), primary_key=True, index=True)
+    username = Column(String(100), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
+    roles = relationship("Role", secondary=user_roles)
+
+
+class District(Base):
+    __tablename__ = "districts"
+    id = Column(String(36), primary_key=True, index=True)
+    name = Column(String(100), unique=True, nullable=False)
+    locations = relationship("Location", back_populates="district")
+    officers = relationship("Officer", back_populates="district")
+
+
+class Location(Base):
+    __tablename__ = "locations"
+    id = Column(String(36), primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    district_id = Column(String(36), ForeignKey("districts.id", ondelete="SET NULL"), nullable=True)
+    
+    district = relationship("District", back_populates="locations")
+    cameras = relationship("Camera", back_populates="location")
+
+
+class Camera(Base):
+    __tablename__ = "cameras"
+    id = Column(String(36), primary_key=True, index=True)
+    ip_address = Column(String(45), nullable=False)
+    resolution = Column(String(50), nullable=False)
+    status = Column(String(50), default="offline")
+    manufacturer = Column(String(100), nullable=True)
+    location_id = Column(String(36), ForeignKey("locations.id", ondelete="SET NULL"), nullable=True)
+    
+    location = relationship("Location", back_populates="cameras")
+
+
+class AIModel(Base):
+    __tablename__ = "ai_models"
+    id = Column(String(36), primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    version = Column(String(50), nullable=False)
+    trained_at = Column(DateTime, nullable=True)
+    accuracy_score = Column(Float, nullable=True)
+    videos = relationship("Video", back_populates="ai_model")
+
+
+class Video(Base):
+    __tablename__ = "videos"
     id = Column(String(36), primary_key=True, index=True)
     nombre_archivo = Column(String(255), nullable=False)
+    ruta_archivo = Column(String(512), nullable=True)
     fecha_subida = Column(DateTime(timezone=True), server_default=func.now())
-    
-    # Columnas complementarias para el flujo de estado y analíticas de la API
     status = Column(String(50), default="procesando", nullable=False)
     error_message = Column(String(1000), nullable=True)
     tiempo_procesamiento_segundos = Column(Float, nullable=True)
+    ai_model_id = Column(String(36), ForeignKey("ai_models.id", ondelete="SET NULL"), nullable=True)
+    
+    ai_model = relationship("AIModel", back_populates="videos")
+    infractions = relationship("Infraction", back_populates="video", cascade="all, delete-orphan")
+    jobs = relationship("ProcessingJob", back_populates="video", cascade="all, delete-orphan")
 
-    # Relación uno-a-muchos con las infracciones detectadas
-    infracciones = relationship("Infraccion", back_populates="video", cascade="all, delete-orphan")
+
+class ProcessingJob(Base):
+    __tablename__ = "processing_jobs"
+    id = Column(String(36), primary_key=True, index=True)
+    video_id = Column(String(36), ForeignKey("videos.id", ondelete="CASCADE"), nullable=False)
+    start_time = Column(DateTime, nullable=True)
+    end_time = Column(DateTime, nullable=True)
+    status = Column(String(50), nullable=False)
+    logs = Column(String(4000), nullable=True)
+    
+    video = relationship("Video", back_populates="jobs")
 
 
-class Infraccion(Base):
-    """
-    Modelo ORM que mapea la tabla física de Infracciones de tránsito detectadas.
-    """
-    __tablename__ = "infracciones"
+class ViolationType(Base):
+    __tablename__ = "violation_types"
+    id = Column(String(50), primary_key=True, index=True)
+    name = Column(String(100), unique=True, nullable=False)
+    base_fine = Column(Float, nullable=False)
+    point_deduction = Column(Integer, default=0)
+    description = Column(String(500), nullable=True)
 
+
+class Infraction(Base):
+    __tablename__ = "infractions"
     id = Column(String(50), primary_key=True, index=True)
     video_id = Column(String(36), ForeignKey("videos.id", ondelete="CASCADE"), nullable=False)
     tipo = Column(String(100), nullable=False)
     frame_path = Column(String(512), nullable=False)
-    timestamp = Column(Float, nullable=False)  # Marca de tiempo en segundos dentro del video
-
-    # Columnas complementarias para el detalle geométrico e identificaciones del incidente
+    timestamp = Column(Float, nullable=False)
     descripcion = Column(String(500), nullable=False)
     placa_vehiculo = Column(String(20), nullable=True)
     confianza = Column(Float, nullable=False)
     caja_delimitadora = Column(JSON, nullable=False)
+    
+    video = relationship("Video", back_populates="infractions")
+    citations = relationship("Citation", back_populates="infraction", cascade="all, delete-orphan")
 
-    # Relación inversa con el video contenedor
-    video = relationship("Video", back_populates="infracciones")
+
+class Vehicle(Base):
+    __tablename__ = "vehicles"
+    plate_number = Column(String(20), primary_key=True, index=True)
+    brand = Column(String(100), nullable=True)
+    model = Column(String(100), nullable=True)
+    color = Column(String(50), nullable=True)
+    vehicle_type = Column(String(50), nullable=True)
+    registration_date = Column(Date, nullable=True)
+    citations = relationship("Citation", back_populates="vehicle")
+
+
+class VehicleOwner(Base):
+    __tablename__ = "vehicle_owners"
+    owner_id = Column(String(50), primary_key=True, index=True)
+    full_name = Column(String(150), nullable=False)
+    address = Column(String(255), nullable=True)
+    email = Column(String(100), nullable=True)
+    telephone = Column(String(50), nullable=True)
+    citations = relationship("Citation", back_populates="owner")
+
+
+class OwnerVehicle(Base):
+    __tablename__ = "owners_vehicles"
+    owner_id = Column(String(50), ForeignKey("vehicle_owners.owner_id", ondelete="CASCADE"), primary_key=True)
+    plate_number = Column(String(20), ForeignKey("vehicles.plate_number", ondelete="CASCADE"), primary_key=True)
+    purchase_date = Column(Date, nullable=True)
+    is_active_owner = Column(Boolean, default=True)
+
+
+class Citation(Base):
+    __tablename__ = "citations"
+    citation_id = Column(String(50), primary_key=True, index=True)
+    infraction_id = Column(String(50), ForeignKey("infractions.id", ondelete="CASCADE"), nullable=False)
+    owner_id = Column(String(50), ForeignKey("vehicle_owners.owner_id", ondelete="CASCADE"), nullable=False)
+    plate_number = Column(String(20), ForeignKey("vehicles.plate_number", ondelete="SET NULL"), nullable=True)
+    issue_date = Column(DateTime(timezone=True), server_default=func.now())
+    fine_amount = Column(Float, nullable=False)
+    due_date = Column(Date, nullable=False)
+    status = Column(String(50), default="pendiente")
+    
+    infraction = relationship("Infraction", back_populates="citations")
+    owner = relationship("VehicleOwner", back_populates="citations")
+    vehicle = relationship("Vehicle", back_populates="citations")
+    payments = relationship("Payment", back_populates="citation", cascade="all, delete-orphan")
+    appeals = relationship("CitationAppeal", back_populates="citation", cascade="all, delete-orphan")
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+    payment_id = Column(String(50), primary_key=True, index=True)
+    citation_id = Column(String(50), ForeignKey("citations.citation_id", ondelete="CASCADE"), nullable=False)
+    amount_paid = Column(Float, nullable=False)
+    payment_method = Column(String(50), nullable=True)
+    transaction_number = Column(String(100), unique=True, nullable=True)
+    payment_date = Column(DateTime(timezone=True), server_default=func.now())
+    
+    citation = relationship("Citation", back_populates="payments")
+
+
+class CitationAppeal(Base):
+    __tablename__ = "citation_appeals"
+    appeal_id = Column(String(50), primary_key=True, index=True)
+    citation_id = Column(String(50), ForeignKey("citations.citation_id", ondelete="CASCADE"), nullable=False)
+    appeal_date = Column(DateTime(timezone=True), server_default=func.now())
+    reason = Column(String(1000), nullable=False)
+    status = Column(String(50), default="en_proceso")
+    resolution_date = Column(DateTime, nullable=True)
+    resolution_notes = Column(String(1000), nullable=True)
+    
+    citation = relationship("Citation", back_populates="appeals")
+
+
+class Officer(Base):
+    __tablename__ = "officers"
+    badge_number = Column(String(50), primary_key=True, index=True)
+    name = Column(String(150), nullable=False)
+    rank = Column(String(100), nullable=True)
+    district_id = Column(String(36), ForeignKey("districts.id", ondelete="SET NULL"), nullable=True)
+    
+    district = relationship("District", back_populates="officers")
+    assignments = relationship("OfficerAssignment", back_populates="officer")
+
+
+class OfficerAssignment(Base):
+    __tablename__ = "officer_assignments"
+    assignment_id = Column(String(36), primary_key=True, index=True)
+    badge_number = Column(String(50), ForeignKey("officers.badge_number", ondelete="CASCADE"), nullable=False)
+    location_id = Column(String(36), ForeignKey("locations.id", ondelete="CASCADE"), nullable=False)
+    shift_start = Column(DateTime, nullable=True)
+    shift_end = Column(DateTime, nullable=True)
+    
+    officer = relationship("Officer", back_populates="assignments")
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    log_id = Column(String(36), primary_key=True, index=True)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    action = Column(String(100), nullable=False)
+    table_name = Column(String(100), nullable=False)
+    details = Column(String(2000), nullable=True)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
 
 
 # =====================================================================
-# 2. MODELOS DE PYDANTIC (Esquemas de serialización y respuesta HTTP)
+# 2. MODELOS DE PYDANTIC (ESQUEMAS DE SERIALIZACIÓN)
 # =====================================================================
 
 class BoundingBoxSchema(BaseModel):
-    """Representa la caja delimitadora normalizada (0.0 a 1.0) generada por la IA."""
-    x_min: float = Field(..., description="Coordenada X inicial normalizada de la caja (0.0 a 1.0)")
-    y_min: float = Field(..., description="Coordenada Y inicial normalizada de la caja (0.0 a 1.0)")
-    x_max: float = Field(..., description="Coordenada X final normalizada de la caja (0.0 a 1.0)")
-    y_max: float = Field(..., description="Coordenada Y final normalizada de la caja (0.0 a 1.0)")
+    x_min: float
+    y_min: float
+    x_max: float
+    y_max: float
 
     class Config:
         from_attributes = True
 
 
-class InfraccionSchema(BaseModel):
-    """Representa el detalle de una infracción de tránsito detectada."""
-    id: str = Field(..., description="Identificador único de la infracción")
-    video_id: str = Field(..., description="ID del video al que pertenece la infracción")
-    tipo: str = Field(..., description="Nombre descriptivo de la infracción")
-    frame_path: str = Field(..., description="Ruta física del fotograma guardado en disco (.jpg)")
-    timestamp: float = Field(..., description="Segundo exacto del video donde ocurre la infracción")
-    descripcion: str = Field(..., description="Descripción detallada de la violación de tránsito")
-    placa_vehiculo: Optional[str] = Field(None, description="Matrícula del vehículo infractor detectado por OCR")
-    confianza: float = Field(..., description="Nivel de confianza de la detección de IA (0.0 a 1.0)")
-    caja_delimitadora: BoundingBoxSchema = Field(..., description="Caja delimitadora que enmarca al infractor")
+class InfractionSchema(BaseModel):
+    id: str
+    video_id: str
+    tipo: str
+    frame_path: str
+    timestamp: float
+    descripcion: str
+    placa_vehiculo: Optional[str] = None
+    confianza: float
+    caja_delimitadora: BoundingBoxSchema
 
     class Config:
         from_attributes = True
 
 
 class VideoUploadResponse(BaseModel):
-    """Esquema de respuesta HTTP al subir exitosamente un video."""
-    video_id: str = Field(..., description="Identificador único global del video subido")
-    filename: str = Field(..., description="Nombre original del archivo subido")
-    status: str = Field(..., description="Estado inicial del procesamiento ('procesando')")
-    message: str = Field(..., description="Mensaje informativo para el cliente")
+    video_id: str
+    filename: str
+    status: str
+    message: str
 
 
 class VideoStatusResponse(BaseModel):
-    """Esquema de respuesta HTTP al consultar el estado de procesamiento del video."""
-    video_id: str = Field(..., description="Identificador único global del video")
-    nombre_archivo: str = Field(..., description="Nombre original del archivo de video")
-    fecha_subida: Optional[datetime.datetime] = Field(None, description="Fecha y hora en que se cargó el video")
-    status: str = Field(..., description="Estado del análisis ('procesando', 'completado', 'fallido')")
-    infracciones: List[InfraccionSchema] = Field(default=[], description="Lista de infracciones de tránsito detectadas")
-    error_message: Optional[str] = Field(None, description="Mensaje explicativo en caso de que ocurra un error")
-    tiempo_procesamiento_segundos: Optional[float] = Field(None, description="Tiempo que le tomó a la IA procesar el video")
+    video_id: str
+    nombre_archivo: str
+    fecha_subida: Optional[datetime.datetime] = None
+    status: str
+    infractions: List[InfractionSchema] = []
+    error_message: Optional[str] = None
+    tiempo_procesamiento_segundos: Optional[float] = None
 
     class Config:
         from_attributes = True
-
-
-# =====================================================================
-# 3. MODELOS DE AUTENTICACIÓN Y ANALÍTICAS
-# =====================================================================
-
-class User(Base):
-    """
-    Modelo ORM que mapea la tabla física de Usuarios en el sistema para control de acceso.
-    """
-    __tablename__ = "users"
-
-    id = Column(String(36), primary_key=True, index=True)
-    username = Column(String(100), unique=True, index=True, nullable=False)
-    hashed_password = Column(String(255), nullable=False)
-    fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
 
 
 class UserLoginSchema(BaseModel):
-    """Esquema para recibir las credenciales de inicio de sesión."""
-    username: str = Field(..., description="Nombre de usuario del administrador")
-    password: str = Field(..., description="Contraseña en texto plano")
+    username: str
+    password: str
 
 
 class TokenSchema(BaseModel):
-    """Esquema de respuesta con el token de sesión generado."""
-    access_token: str = Field(..., description="JWT Token de sesión")
-    token_type: str = Field("bearer", description="Tipo de token")
-    username: str = Field(..., description="Nombre del usuario autenticado")
+    access_token: str
+    token_type: str
+    username: str
 
 
-class ViolationDistributionItem(BaseModel):
-    """Representa el conteo cuantitativo para un tipo específico de infracción."""
-    tipo: str = Field(..., description="Tipo de infracción")
-    count: int = Field(..., description="Número total detectado")
-
-
-class HistoryTrendItem(BaseModel):
-    """Representa la cantidad de infracciones detectadas agrupadas cronológicamente."""
-    fecha: str = Field(..., description="Fecha agrupada (e.g. YYYY-MM-DD o HH:MM)")
-    count: int = Field(..., description="Número de infracciones en ese período")
-
-
-class AnalyticsStatsResponse(BaseModel):
-    """Esquema consolidado con todas las métricas agregadas del dashboard de analíticas."""
-    total_videos: int = Field(..., description="Cantidad total de videos subidos al sistema")
-    total_infracciones: int = Field(..., description="Suma total de infracciones detectadas por la IA")
-    promedio_confianza: float = Field(..., description="Promedio general de certeza de la IA en detecciones (0.0 a 1.0)")
-    distribucion_infracciones: List[ViolationDistributionItem] = Field(..., description="Agrupación de multas por tipología")
-    tendencia_historial: List[HistoryTrendItem] = Field(..., description="Historial cronológico de multas")
-    ultimas_infracciones: List[InfraccionSchema] = Field(..., description="Historial de las últimas infracciones registradas")
+# Nuevos Esquemas Pydantic
+class DistrictSchema(BaseModel):
+    id: str
+    name: str
 
     class Config:
         from_attributes = True
 
+
+class LocationSchema(BaseModel):
+    id: str
+    name: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    district_id: Optional[str] = None
+    district: Optional[DistrictSchema] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CameraSchema(BaseModel):
+    id: str
+    ip_address: str
+    resolution: str
+    status: str
+    manufacturer: Optional[str] = None
+    location_id: Optional[str] = None
+    location: Optional[LocationSchema] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CameraCreateSchema(BaseModel):
+    ip_address: str
+    resolution: str
+    status: str
+    manufacturer: Optional[str] = None
+    location_id: Optional[str] = None
+
+
+class VehicleSchema(BaseModel):
+    plate_number: str
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    color: Optional[str] = None
+    vehicle_type: Optional[str] = None
+    registration_date: Optional[datetime.date] = None
+
+    class Config:
+        from_attributes = True
+
+
+class VehicleOwnerSchema(BaseModel):
+    owner_id: str
+    full_name: str
+    address: Optional[str] = None
+    email: Optional[str] = None
+    telephone: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PaymentSchema(BaseModel):
+    payment_id: str
+    amount_paid: float
+    payment_method: Optional[str] = None
+    transaction_number: Optional[str] = None
+    payment_date: Optional[datetime.datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CitationAppealSchema(BaseModel):
+    appeal_id: str
+    appeal_date: datetime.datetime
+    reason: str
+    status: str
+    resolution_date: Optional[datetime.datetime] = None
+    resolution_notes: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class CitationSchema(BaseModel):
+    citation_id: str
+    infraction_id: str
+    owner_id: str
+    plate_number: Optional[str] = None
+    issue_date: Optional[datetime.datetime] = None
+    fine_amount: float
+    due_date: datetime.date
+    status: str
+    infraction: Optional[InfractionSchema] = None
+    payments: List[PaymentSchema] = []
+    appeals: List[CitationAppealSchema] = []
+
+    class Config:
+        from_attributes = True
+
+
+class OwnerDetailSchema(BaseModel):
+    owner: VehicleOwnerSchema
+    vehicles: List[VehicleSchema] = []
+    citations: List[CitationSchema] = []
+
+    class Config:
+        from_attributes = True
+
+
+# Esquemas de Estadísticas y Analíticas
+class ViolationDistributionItem(BaseModel):
+    tipo: str
+    count: int
+
+
+class HistoryTrendItem(BaseModel):
+    fecha: str
+    count: int
+
+
+class AnalyticsStatsResponse(BaseModel):
+    total_videos: int
+    total_infractions: int
+    promedio_confianza: float
+    infraction_distribution: List[ViolationDistributionItem]
+    tendencia_historial: List[HistoryTrendItem]
+    recent_infractions: List[InfractionSchema]
+
+    class Config:
+        from_attributes = True
+
+
+class OfficerAssignmentSchema(BaseModel):
+    assignment_id: str
+    badge_number: str
+    location_id: str
+    shift_start: Optional[datetime.datetime] = None
+    shift_end: Optional[datetime.datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class OfficerSchema(BaseModel):
+    badge_number: str
+    name: str
+    rank: Optional[str] = None
+    district_id: Optional[str] = None
+    district: Optional[DistrictSchema] = None
+    assignments: List[OfficerAssignmentSchema] = []
+
+    class Config:
+        from_attributes = True
+
+
+class AIModelSchema(BaseModel):
+    id: str
+    name: str
+    version: str
+    trained_at: Optional[datetime.datetime] = None
+    accuracy_score: Optional[float] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ProcessingJobSchema(BaseModel):
+    id: str
+    video_id: str
+    start_time: Optional[datetime.datetime] = None
+    end_time: Optional[datetime.datetime] = None
+    status: str
+    logs: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AuditLogSchema(BaseModel):
+    log_id: str
+    user_id: Optional[str] = None
+    action: str
+    table_name: str
+    details: Optional[str] = None
+    timestamp: Optional[datetime.datetime] = None
+
+    class Config:
+        from_attributes = True

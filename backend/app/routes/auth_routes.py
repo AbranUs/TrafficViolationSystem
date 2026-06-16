@@ -10,15 +10,14 @@ logger = logging.getLogger("AuthRoutes")
 router = APIRouter()
 
 # Sal y algoritmo nativo de cifrado SHA256 (seguro y auto-contenido sin dependencias de NPM o pip)
-SALT = "TrafficViolationSaltSystemKey"
+SALT: str = "TrafficViolationSaltSystemKey"
 
 def get_password_hash(password: str) -> str:
     """Genera el hash SHA-256 de una contraseña en texto plano combinada con la sal."""
     salted_pwd = password + SALT
     return hashlib.sha256(salted_pwd.encode('utf-8')).hexdigest()
 
-
-def seed_default_user(db: Session):
+def seed_default_user(db: Session) -> None:
     """
     Función de semilla. Crea un usuario administrador por defecto
     ('admin' / 'admin123') la primera vez si la tabla 'users' está vacía.
@@ -36,13 +35,12 @@ def seed_default_user(db: Session):
             db.add(db_user)
             db.commit()
             logger.info("[Auth] ¡Usuario de prueba 'admin' creado exitosamente en base de datos!")
-    except Exception as e:
-        logger.error(f"[Auth] Error al inyectar usuario por defecto en base de datos: {e}")
+    except Exception:
+        logger.exception("[Auth] Error al inyectar usuario por defecto en base de datos:")
         db.rollback()
 
-
 @router.post("/login", response_model=TokenSchema)
-async def login(payload: UserLoginSchema, db: Session = Depends(get_db)):
+async def login(payload: UserLoginSchema, db: Session = Depends(get_db)) -> dict:
     """
     Verifica las credenciales provistas por el cliente contra la base de datos SQL.
     Si son válidas, genera un token mock JWT/seguro para control de sesión en el frontend.

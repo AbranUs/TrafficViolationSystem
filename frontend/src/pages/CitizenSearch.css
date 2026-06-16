@@ -1,0 +1,559 @@
+/* ESTILOS PARA LA PESTAÑA DE CONSULTA CIUDADANA */
+
+.citizen-page-container {
+  padding: 1.5rem 2rem;
+  max-width: 1300px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.citizen-search-row {
+  position: relative;
+  max-width: 650px;
+  margin: 0 auto 2.5rem auto;
+  z-index: 100;
+}
+
+.search-box-citizen {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon-citizen {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+}
+
+.search-input-citizen-field {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  color: #f8fafc;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.search-input-citizen-field:focus {
+  border-color: #6366f1;
+  background: rgba(15, 23, 42, 0.85);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.search-loader {
+  position: absolute;
+  right: 14px;
+  color: #6366f1;
+}
+
+/* Resultados Dropdown */
+.search-results-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 0.5rem;
+  background: rgba(15, 22, 42, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  padding: 0.35rem 0;
+}
+
+.result-dropdown-item {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0.6rem 1rem;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.result-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.item-text-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.owner-dropdown-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.owner-dropdown-id {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+/* Estado Idle / Espera */
+.card-idle-citizen,
+.card-loader-citizen,
+.card-error-citizen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4.5rem 2rem;
+  text-align: center;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.35) !important;
+  backdrop-filter: blur(12px);
+}
+
+.idle-decor-icon-citizen {
+  color: #6366f1;
+  margin-bottom: 1.5rem;
+}
+
+.spinner-icon-citizen {
+  color: #6366f1;
+  animation: spin 1.5s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+.error-icon-citizen {
+  color: #ef4444;
+  margin-bottom: 1.5rem;
+}
+
+/* Grid Principal de Detalles */
+.citizen-details-grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .citizen-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Ficha del Propietario */
+.profile-card {
+  padding: 2rem;
+  text-align: center;
+  background: rgba(15, 23, 42, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+}
+
+.profile-avatar-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.profile-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+}
+
+.profile-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 0.25rem 0;
+}
+
+.profile-id-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 1.75rem;
+  letter-spacing: 0.05em;
+}
+
+.profile-contact-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  text-align: left;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 1.5rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+.contact-icon {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+/* Sección de Vehículos */
+.citizen-vehicles-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section-title-citizen {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.empty-subcard {
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #64748b;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.vehicles-list-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.vehicle-subcard {
+  background: rgba(15, 23, 42, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.vehicle-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.car-icon-badge {
+  color: #8b5cf6;
+}
+
+.vehicle-brand {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.vehicle-details-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.vehicle-metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.v-lbl {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 0.1rem;
+}
+
+.v-val {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.badge-plate-citizen {
+  font-family: 'Outfit', monospace;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.05rem 0.35rem;
+  border-radius: 3px;
+  color: #cbd5e1;
+}
+
+.text-capitalize {
+  text-transform: capitalize;
+}
+
+/* Columna de Citaciones */
+.citizen-citations-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.clean-citizen-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 2rem;
+  text-align: center;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.03) !important;
+  border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.clean-citizen-icon {
+  color: #10b981;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.3));
+}
+
+.citations-list-citizen {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.citation-card-premium {
+  background: rgba(15, 23, 42, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.citation-card-premium:hover {
+  transform: translateY(-2px);
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+.citation-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.citation-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.citation-id-text {
+  font-size: 0.85rem;
+  color: #818cf8;
+}
+
+.citation-date {
+  font-size: 0.75rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Citations Status Badges */
+.citation-status-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  letter-spacing: 0.02em;
+}
+
+.status-paid {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #34d399;
+}
+
+.status-pending {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
+.status-appealed {
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+}
+
+.status-expired {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+.citation-body-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.citation-type-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.citation-desc {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.citation-metrics-inline {
+  display: flex;
+  gap: 1.5rem;
+  background: rgba(8, 12, 24, 0.3);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.c-metric {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.c-lbl {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.c-val {
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.color-gold {
+  color: #38bdf8 !important;
+}
+
+.citation-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  padding-top: 0.75rem;
+}
+
+.btn-appeal-citation {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-appeal-citation:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #f8fafc;
+  color: #ffffff;
+}
+
+/* Modal Apelación */
+.appeal-modal-content {
+  max-width: 500px !important;
+}
+
+.appeal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 0.5rem;
+}
+
+.appeal-meta-details {
+  display: flex;
+  justify-content: space-between;
+  background: rgba(8, 12, 24, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+}
+
+.form-group-appeal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label-appeal {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.appeal-textarea {
+  background: rgba(8, 12, 24, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 0.65rem 0.85rem;
+  color: #f8fafc;
+  font-size: 0.875rem;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.appeal-textarea:focus {
+  border-color: #6366f1;
+  background: rgba(8, 12, 24, 0.85);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}

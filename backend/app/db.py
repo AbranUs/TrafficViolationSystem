@@ -1,19 +1,15 @@
 import os
 import logging
-import threading
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from typing import Generator, Any
+from sqlalchemy import create_engine, Engine
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
 # Configuración básica de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("Database")
 
-# Almacén en memoria thread-safe de respaldo (para compatibilidad redundante)
-db_lock = threading.Lock()
-videos_db = {}
-
 # Cargar URL de la base de datos de entorno, con fallback para desarrollo
-DATABASE_URL = os.getenv(
+DATABASE_URL: str = os.getenv(
     "DATABASE_URL", 
     "postgresql://postgres:postgres@localhost:5432/traffic_violations"
 )
@@ -24,12 +20,12 @@ if DATABASE_URL.startswith("postgres://"):
 
 # Declarar Base del ORM
 Base = declarative_base()
-engine = None
-SessionLocal = None
-is_sqlite_fallback = False
+engine: Any = None
+SessionLocal: Any = None
+is_sqlite_fallback: bool = False
 
 try:
-    logger.info(f"Conectando a base de datos principal...")
+    logger.info("Conectando a base de datos principal...")
     # Creamos el motor de base de datos relacional
     if DATABASE_URL.startswith("sqlite"):
         engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
@@ -44,7 +40,6 @@ try:
         
 except Exception as e:
     # Fallback automático a SQLite basado en archivo físico para garantizar consistencia entre hilos
-    # (SQLite :memory: no es compartido por diferentes hilos de conexión independientes)
     base_dir = os.path.dirname(os.path.abspath(__file__))
     fallback_db_path = os.path.join(base_dir, "fallback.db")
     logger.warning(f"[DB] No se pudo conectar a PostgreSQL ({e}).")
@@ -55,7 +50,7 @@ except Exception as e:
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     is_sqlite_fallback = True
 
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     """
     Generador de dependencias para inyectar la sesión de la base de datos SQL
     en las llamadas HTTP de FastAPI. Garantiza el cierre seguro al concluir.

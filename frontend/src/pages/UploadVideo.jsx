@@ -140,13 +140,39 @@ function UploadVideo() {
   const startPolling = (id) => {
     const intervalId = setInterval(async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/api/v1/videos/infracciones/${id}`)
+        const response = await axios.get(`${BACKEND_URL}/api/v1/videos/infractions/${id}`)
         const data = response.data
         
         if (data.status === 'completado') {
           clearInterval(intervalId)
           setVideoResult(data)
           setUiState('completed')
+          
+          // Reproducir alerta auditiva si está configurada y hay infracciones
+          const audioAlertsEnabled = localStorage.getItem('settings_audio_alerts') !== 'false';
+          if (audioAlertsEnabled && data.infractions && data.infractions.length > 0) {
+            try {
+              const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+              const osc1 = audioCtx.createOscillator();
+              const osc2 = audioCtx.createOscillator();
+              const gainNode = audioCtx.createGain();
+              osc1.type = 'sine';
+              osc1.frequency.setValueAtTime(880, audioCtx.currentTime);
+              osc2.type = 'triangle';
+              osc2.frequency.setValueAtTime(440, audioCtx.currentTime);
+              gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+              gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+              osc1.connect(gainNode);
+              osc2.connect(gainNode);
+              gainNode.connect(audioCtx.destination);
+              osc1.start();
+              osc2.start();
+              osc1.stop(audioCtx.currentTime + 0.5);
+              osc2.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {
+              console.warn('No se pudo reproducir la alerta sonora:', e);
+            }
+          }
           
           // Guardar en la lista de recientes de localStorage para integrarse dinámicamente con Report.jsx
           try {
@@ -333,7 +359,7 @@ function UploadVideo() {
                 </div>
                 <div className="metric-card">
                   <span className="metric-label">Infracciones Totales</span>
-                  <span className="metric-value violation-count-value">{videoResult.infracciones.length}</span>
+                  <span className="metric-value violation-count-value">{videoResult.infractions.length}</span>
                 </div>
               </div>
             </div>
@@ -345,7 +371,7 @@ function UploadVideo() {
               <div className="violations-list-section">
                 <h3 className="section-title">Infracciones Detectadas por Cuadros</h3>
                 
-                {videoResult.infracciones.length === 0 ? (
+                {videoResult.infractions.length === 0 ? (
                   <div className="glass-panel no-violations-card">
                     <CheckCircle size={48} className="clean-icon" />
                     <h4>¡Buen Comportamiento Vial!</h4>
@@ -353,7 +379,7 @@ function UploadVideo() {
                   </div>
                 ) : (
                   <div className="violations-grid">
-                    {videoResult.infracciones.map((inf) => {
+                    {videoResult.infractions.map((inf) => {
                       // Determinar el color del badge y estilo según tipo
                       let badgeClass = "badge-gray"
                       if (inf.tipo === "Cruce de semáforo en rojo") badgeClass = "badge-red"
