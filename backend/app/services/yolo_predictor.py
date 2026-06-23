@@ -176,6 +176,43 @@ def detect_via_classic_cv(frame: cv2.Mat, width: int, height: int) -> List[Dict[
     return detections
 
 
+def _interpolate_taxi_bbox(t: float) -> List[float]:
+    taxi_keyframes = [
+        (1.67, [0.00027, 0.78657, 0.18782, 0.99108]),
+        (2.00, [0.00123, 0.63160, 0.36978, 0.99357]),
+        (2.50, [0.03027, 0.57710, 0.51781, 0.99614]),
+        (3.00, [0.26662, 0.58810, 0.60617, 0.99674]),
+        (3.50, [0.39075, 0.57297, 0.66063, 0.91955]),
+        (4.00, [0.47322, 0.55900, 0.68981, 0.84296]),
+        (4.60, [0.54195, 0.55188, 0.72245, 0.79257]),
+        (5.00, [0.58457, 0.54895, 0.74302, 0.76436]),
+        (5.50, [0.63143, 0.54440, 0.77121, 0.72856]),
+        (6.00, [0.67515, 0.53273, 0.79978, 0.69568]),
+        (6.50, [0.70605, 0.54843, 0.81559, 0.69551]),
+        (7.00, [0.73076, 0.54018, 0.82746, 0.67112]),
+        (7.50, [0.75390, 0.52609, 0.83705, 0.64386]),
+        (8.00, [0.77549, 0.52669, 0.83157, 0.63469]),
+        (8.53, [0.79412, 0.53553, 0.83637, 0.63622])
+    ]
+    if t <= taxi_keyframes[0][0]:
+        return taxi_keyframes[0][1]
+    if t >= taxi_keyframes[-1][0]:
+        return taxi_keyframes[-1][1]
+        
+    for i in range(len(taxi_keyframes) - 1):
+        t1, b1 = taxi_keyframes[i]
+        t2, b2 = taxi_keyframes[i+1]
+        if t1 <= t <= t2:
+            factor = (t - t1) / (t2 - t1)
+            return [
+                b1[0] + factor * (b2[0] - b1[0]),
+                b1[1] + factor * (b2[1] - b1[1]),
+                b1[2] + factor * (b2[2] - b1[2]),
+                b1[3] + factor * (b2[3] - b1[3])
+            ]
+    return taxi_keyframes[0][1]
+
+
 def get_mock_detections_for_demo(
     filename: str, 
     frame_idx: int, 
@@ -193,13 +230,12 @@ def get_mock_detections_for_demo(
     if "video_test" in fn_lower or "test" in fn_lower:
         return []
         
-    is_demo = False
-    if "infraccion" in fn_lower or "infracci" in fn_lower:
-        is_demo = True
-    elif "grabacion" in fn_lower or "grabaci" in fn_lower or "pantalla" in fn_lower or "screen" in fn_lower:
-        is_demo = True
-    elif width == 1200 and height == 668:
-        is_demo = True
+    is_demo = (
+        "infraccion" in fn_lower or "infracci" in fn_lower or
+        "grabacion" in fn_lower or "grabaci" in fn_lower or
+        "pantalla" in fn_lower or "screen" in fn_lower or
+        (width == 1200 and height == 668)
+    )
 
     if not is_demo:
         return []
@@ -218,45 +254,7 @@ def get_mock_detections_for_demo(
     
     # 2. Trayectoria simulada del vehículo taxi blanco a partir de t=1.2s
     if t >= 1.2:
-        # Coordenadas reales del taxi a lo largo del tiempo obtenidas mediante análisis de visión
-        taxi_keyframes = [
-            (1.67, [0.00027, 0.78657, 0.18782, 0.99108]),
-            (2.00, [0.00123, 0.63160, 0.36978, 0.99357]),
-            (2.50, [0.03027, 0.57710, 0.51781, 0.99614]),
-            (3.00, [0.26662, 0.58810, 0.60617, 0.99674]),
-            (3.50, [0.39075, 0.57297, 0.66063, 0.91955]),
-            (4.00, [0.47322, 0.55900, 0.68981, 0.84296]),
-            (4.60, [0.54195, 0.55188, 0.72245, 0.79257]),
-            (5.00, [0.58457, 0.54895, 0.74302, 0.76436]),
-            (5.50, [0.63143, 0.54440, 0.77121, 0.72856]),
-            (6.00, [0.67515, 0.53273, 0.79978, 0.69568]),
-            (6.50, [0.70605, 0.54843, 0.81559, 0.69551]),
-            (7.00, [0.73076, 0.54018, 0.82746, 0.67112]),
-            (7.50, [0.75390, 0.52609, 0.83705, 0.64386]),
-            (8.00, [0.77549, 0.52669, 0.83157, 0.63469]),
-            (8.53, [0.79412, 0.53553, 0.83637, 0.63622])
-        ]
-        
-        # Encontrar interpolación adecuada para el fotograma actual
-        if t <= taxi_keyframes[0][0]:
-            bbox = taxi_keyframes[0][1]
-        elif t >= taxi_keyframes[-1][0]:
-            bbox = taxi_keyframes[-1][1]
-        else:
-            bbox = taxi_keyframes[0][1]
-            for i in range(len(taxi_keyframes) - 1):
-                t1, b1 = taxi_keyframes[i]
-                t2, b2 = taxi_keyframes[i+1]
-                if t1 <= t <= t2:
-                    factor = (t - t1) / (t2 - t1)
-                    bbox = [
-                        b1[0] + factor * (b2[0] - b1[0]),
-                        b1[1] + factor * (b2[1] - b1[1]),
-                        b1[2] + factor * (b2[2] - b1[2]),
-                        b1[3] + factor * (b2[3] - b1[3])
-                    ]
-                    break
-        
+        bbox = _interpolate_taxi_bbox(t)
         x1_n, y1_n, x2_n, y2_n = bbox
         cx_n = (x1_n + x2_n) / 2
         cy_n = (y1_n + y2_n) / 2
@@ -270,6 +268,7 @@ def get_mock_detections_for_demo(
         })
         
     return detections
+
 
 
 def _process_custom_boxes(result: Any, detections: List[Dict[str, Any]], width: int, height: int) -> None:

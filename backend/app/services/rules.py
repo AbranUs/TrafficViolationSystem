@@ -201,27 +201,19 @@ def correct_to_peruvian_plate(raw_text: str) -> str:
     return f"{char0}{char1}{char2}-{char3}{char4}{char5}"
 
 
-def extract_license_plate(frame: cv2.Mat, bbox_norm: List[float], width: int, height: int, filename: str = "") -> str:
-    """
-    Recorta la región del vehículo del fotograma, escala la imagen 3x con interpolación cúbica
-    para optimizar los detalles y corre EasyOCR aplicando correcciones de placas peruanas.
-    Si procesa el video demo 'infraccion.mp4', retorna la placa semilla AB-123-CD.
-    """
+def _is_demo_video(filename: str, width: int, height: int) -> bool:
     fn_lower = filename.lower() if filename else ""
-    is_demo = False
-    if "infraccion" in fn_lower or "infracci" in fn_lower:
-        is_demo = True
-    elif "grabacion" in fn_lower or "grabaci" in fn_lower or "pantalla" in fn_lower or "screen" in fn_lower:
-        is_demo = True
-    elif width == 1200 and height == 668:
-        is_demo = True
-        
     if "video_test" in fn_lower or "test" in fn_lower:
-        is_demo = False
+        return False
+    return (
+        "infraccion" in fn_lower or "infracci" in fn_lower or
+        "grabacion" in fn_lower or "grabaci" in fn_lower or
+        "pantalla" in fn_lower or "screen" in fn_lower or
+        (width == 1200 and height == 668)
+    )
 
-    if is_demo:
-        return "AB-123-CD"
 
+def _ocr_vehicle_plate(frame: cv2.Mat, bbox_norm: List[float], width: int, height: int) -> str:
     try:
         x1_n, y1_n, x2_n, y2_n = bbox_norm
         x1, y1 = max(0, int(x1_n * width)), max(0, int(y1_n * height))
@@ -232,10 +224,10 @@ def extract_license_plate(frame: cv2.Mat, bbox_norm: List[float], width: int, he
             return generate_mock_license_plate()
             
         h_v, _, _ = vehicle_crop.shape
-        # Las placas están típicamente en la mitad inferior del vehículo (ej: del 40% hacia abajo)
+        # Las placas estan tipicamente en la mitad inferior del vehiculo (ej: del 45% hacia abajo)
         plate_area = vehicle_crop[int(h_v * 0.45):, :]
         
-        # Escalar 3x con interpolación cúbica para mejorar nitidez de texto pequeño
+        # Escalar 3x con interpolacion cubica para mejorar nitidez de texto pequeno
         plate_area_resized = cv2.resize(plate_area, (0, 0), fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
         
         # Cargar lector OCR perezosamente
@@ -250,7 +242,7 @@ def extract_license_plate(frame: cv2.Mat, bbox_norm: List[float], width: int, he
         # Filtrar textos candidatos
         possible_plates = []
         for _, text, conf in results:
-            # Limpiar caracteres dejando solo letras y números
+            # Limpiar caracteres dejando solo letras y numeros
             cleaned = re.sub(r'[^A-Z0-9]', '', text.upper())
             if 5 <= len(cleaned) <= 8:
                 possible_plates.append((cleaned, conf))
@@ -260,7 +252,7 @@ def extract_license_plate(frame: cv2.Mat, bbox_norm: List[float], width: int, he
             possible_plates.sort(key=lambda x: x[1], reverse=True)
             best_raw = possible_plates[0][0]
             
-            # Aplicar corrección peruana si tiene longitud 6
+            # Aplicar correccion peruana si tiene longitud 6
             if len(best_raw) == 6:
                 return correct_to_peruvian_plate(best_raw)
             
@@ -273,3 +265,15 @@ def extract_license_plate(frame: cv2.Mat, bbox_norm: List[float], width: int, he
         logging.getLogger("OCR").warning(f"Error detectando placa mediante OCR: {e}")
         
     return generate_mock_license_plate()
+
+
+def extract_license_plate(frame: cv2.Mat, bbox_norm: List[float], width: int, height: int, filename: str = "") -> str:
+    """
+    Recorta la region del vehiculo del fotograma, escala la imagen 3x con interpolacion cubica
+    para optimizar los detalles y corre EasyOCR aplicando correcciones de placas peruanas.
+    Si procesa el video demo 'infraccion.mp4', retorna la placa semilla AB-123-CD.
+    """
+    if _is_demo_video(filename, width, height):
+        return "AB-123-CD"
+    return _ocr_vehicle_plate(frame, bbox_norm, width, height)
+
