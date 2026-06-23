@@ -24,9 +24,6 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    envVars:
-      - key: VITE_API_URL
-        value: ${traffic_violations_backend.url}
     routes:
       - type: rewrite
         source: /*

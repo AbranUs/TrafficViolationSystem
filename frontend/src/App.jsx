@@ -8,7 +8,20 @@ import SettingsPanel from './pages/SettingsPanel.jsx'
 import CamerasRegistry from './pages/CamerasRegistry.jsx'
 import CitizenSearch from './pages/CitizenSearch.jsx'
 import AuditControl from './pages/AuditControl.jsx'
-import { UploadCloud, BarChart3, LogOut, BarChart4, ClipboardList, Settings, Camera, Users, ShieldAlert } from 'lucide-react'
+import VariableOperationalization from './pages/VariableOperationalization.jsx'
+import { UploadCloud, BarChart3, LogOut, BarChart4, ClipboardList, Settings, Camera, Users, ShieldAlert, FileSpreadsheet } from 'lucide-react'
+
+const TABS = [
+  { id: 'upload', label: 'Analizar Video', Icon: UploadCloud, Component: UploadVideo },
+  { id: 'report', label: 'Monitoreo y Reportes', Icon: BarChart3, Component: Report },
+  { id: 'analytics', label: 'Panel Analítico', Icon: BarChart4, Component: DashboardStats },
+  { id: 'history', label: 'Historial de Infracciones', Icon: ClipboardList, Component: InfractionHistory },
+  { id: 'settings', label: 'Configuración Vial', Icon: Settings, Component: SettingsPanel },
+  { id: 'cameras', label: 'Red de Cámaras', Icon: Camera, Component: CamerasRegistry },
+  { id: 'citizens', label: 'Consulta Ciudadana', Icon: Users, Component: CitizenSearch },
+  { id: 'audit', label: 'Control y Auditoría', Icon: ShieldAlert, Component: AuditControl },
+  { id: 'operationalization', label: 'Matriz de Variables', Icon: FileSpreadsheet, Component: VariableOperationalization }
+]
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -110,197 +123,35 @@ function App() {
 
           {/* Links de Control de Pestañas */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <button 
-              onClick={() => setActiveTab('upload')}
-              style={{
-                width: '100%',
-                background: activeTab === 'upload' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)' : 'transparent',
-                border: '1px solid',
-                borderColor: activeTab === 'upload' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-                color: activeTab === 'upload' ? '#ffffff' : '#94a3b8',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                transition: 'all 0.2s ease',
-                textAlign: 'left',
-                boxShadow: activeTab === 'upload' ? '0 4px 12px rgba(99, 102, 241, 0.1)' : 'none'
-              }}
-            >
-              <UploadCloud size={16} style={{ color: activeTab === 'upload' ? '#a5b4fc' : '#64748b' }} /> Analizar Video
-            </button>
-            
-            <button 
-              onClick={() => setActiveTab('report')}
-              style={{
-                width: '100%',
-                background: activeTab === 'report' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)' : 'transparent',
-                border: '1px solid',
-                borderColor: activeTab === 'report' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-                color: activeTab === 'report' ? '#ffffff' : '#94a3b8',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                transition: 'all 0.2s ease',
-                textAlign: 'left',
-                boxShadow: activeTab === 'report' ? '0 4px 12px rgba(99, 102, 241, 0.1)' : 'none'
-              }}
-            >
-              <BarChart3 size={16} style={{ color: activeTab === 'report' ? '#a5b4fc' : '#64748b' }} /> Monitoreo y Reportes
-            </button>
-
-            <button 
-              onClick={() => setActiveTab('analytics')}
-              style={{
-                width: '100%',
-                background: activeTab === 'analytics' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)' : 'transparent',
-                border: '1px solid',
-                borderColor: activeTab === 'analytics' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-                color: activeTab === 'analytics' ? '#ffffff' : '#94a3b8',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                transition: 'all 0.2s ease',
-                textAlign: 'left',
-                boxShadow: activeTab === 'analytics' ? '0 4px 12px rgba(99, 102, 241, 0.1)' : 'none'
-              }}
-            >
-              <BarChart4 size={16} style={{ color: activeTab === 'analytics' ? '#a5b4fc' : '#64748b' }} /> Panel Analítico
-            </button>
-
-            <button 
-              onClick={() => setActiveTab('history')}
-              style={{
-                width: '100%',
-                background: activeTab === 'history' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)' : 'transparent',
-                border: '1px solid',
-                borderColor: activeTab === 'history' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-                color: activeTab === 'history' ? '#ffffff' : '#94a3b8',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                transition: 'all 0.2s ease',
-                textAlign: 'left',
-                boxShadow: activeTab === 'history' ? '0 4px 12px rgba(99, 102, 241, 0.1)' : 'none'
-              }}
-            >
-              <ClipboardList size={16} style={{ color: activeTab === 'history' ? '#a5b4fc' : '#64748b' }} /> Historial de Infracciones
-            </button>
-
-            <button 
-              onClick={() => setActiveTab('settings')}
-              style={{
-                width: '100%',
-                background: activeTab === 'settings' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)' : 'transparent',
-                border: '1px solid',
-                borderColor: activeTab === 'settings' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-                color: activeTab === 'settings' ? '#ffffff' : '#94a3b8',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                transition: 'all 0.2s ease',
-                textAlign: 'left',
-                boxShadow: activeTab === 'settings' ? '0 4px 12px rgba(99, 102, 241, 0.1)' : 'none'
-              }}
-            >
-              <Settings size={16} style={{ color: activeTab === 'settings' ? '#a5b4fc' : '#64748b' }} /> Configuración Vial
-            </button>
-
-            <button 
-              onClick={() => setActiveTab('cameras')}
-              style={{
-                width: '100%',
-                background: activeTab === 'cameras' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)' : 'transparent',
-                border: '1px solid',
-                borderColor: activeTab === 'cameras' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-                color: activeTab === 'cameras' ? '#ffffff' : '#94a3b8',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                transition: 'all 0.2s ease',
-                textAlign: 'left',
-                boxShadow: activeTab === 'cameras' ? '0 4px 12px rgba(99, 102, 241, 0.1)' : 'none'
-              }}
-            >
-              <Camera size={16} style={{ color: activeTab === 'cameras' ? '#a5b4fc' : '#64748b' }} /> Red de Cámaras
-            </button>
-
-            <button 
-              onClick={() => setActiveTab('citizens')}
-              style={{
-                width: '100%',
-                background: activeTab === 'citizens' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)' : 'transparent',
-                border: '1px solid',
-                borderColor: activeTab === 'citizens' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-                color: activeTab === 'citizens' ? '#ffffff' : '#94a3b8',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                transition: 'all 0.2s ease',
-                textAlign: 'left',
-                boxShadow: activeTab === 'citizens' ? '0 4px 12px rgba(99, 102, 241, 0.1)' : 'none'
-              }}
-            >
-              <Users size={16} style={{ color: activeTab === 'citizens' ? '#a5b4fc' : '#64748b' }} /> Consulta Ciudadana
-            </button>
-
-            <button 
-              onClick={() => setActiveTab('audit')}
-              style={{
-                width: '100%',
-                background: activeTab === 'audit' ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)' : 'transparent',
-                border: '1px solid',
-                borderColor: activeTab === 'audit' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
-                color: activeTab === 'audit' ? '#ffffff' : '#94a3b8',
-                padding: '0.75rem 1rem',
-                borderRadius: '8px',
-                fontSize: '0.88rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                transition: 'all 0.2s ease',
-                textAlign: 'left',
-                boxShadow: activeTab === 'audit' ? '0 4px 12px rgba(99, 102, 241, 0.1)' : 'none'
-              }}
-            >
-              <ShieldAlert size={16} style={{ color: activeTab === 'audit' ? '#a5b4fc' : '#64748b' }} /> Control y Auditoría
-            </button>
+            {TABS.map(({ id, label, Icon }) => {
+              const isActive = activeTab === id;
+              return (
+                <button 
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  style={{
+                    width: '100%',
+                    background: isActive ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0.12) 100%)' : 'transparent',
+                    border: '1px solid',
+                    borderColor: isActive ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
+                    color: isActive ? '#ffffff' : '#94a3b8',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '8px',
+                    fontSize: '0.88rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    transition: 'all 0.2s ease',
+                    textAlign: 'left',
+                    boxShadow: isActive ? '0 4px 12px rgba(99, 102, 241, 0.1)' : 'none'
+                  }}
+                >
+                  <Icon size={16} style={{ color: isActive ? '#a5b4fc' : '#64748b' }} /> {label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -348,14 +199,14 @@ function App() {
         padding: '2.5rem 3rem',
         boxSizing: 'border-box'
       }}>
-        {activeTab === 'upload' && <UploadVideo />}
-        {activeTab === 'report' && <Report />}
-        {activeTab === 'analytics' && <DashboardStats />}
-        {activeTab === 'history' && <InfractionHistory />}
-        {activeTab === 'settings' && <SettingsPanel />}
-        {activeTab === 'cameras' && <CamerasRegistry />}
-        {activeTab === 'citizens' && <CitizenSearch />}
-        {activeTab === 'audit' && <AuditControl />}
+        {(() => {
+          const activeTabObj = TABS.find(tab => tab.id === activeTab);
+          if (activeTabObj) {
+            const ActiveComponent = activeTabObj.Component;
+            return <ActiveComponent />;
+          }
+          return null;
+        })()}
       </div>
       
     </div>

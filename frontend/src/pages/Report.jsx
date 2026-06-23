@@ -248,7 +248,7 @@ function Report() {
                     className="html5-video-player"
                     onTimeUpdate={handleTimeUpdate}
                     onError={(e) => {
-                      logger.error("Error al cargar video nativamente");
+                      console.error("Error al cargar video nativamente:", e);
                     }}
                   />
 

@@ -14,7 +14,8 @@ from app.services.rules import (
     check_red_light_violation,
     check_uturn_violation,
     check_parking_violation,
-    generate_mock_license_plate
+    generate_mock_license_plate,
+    extract_license_plate
 )
 
 # Configuración básica de logging
@@ -127,7 +128,7 @@ def _evaluate_custom_rules(
             v_bbox = det["bbox"]
             save_highlighted_frame(frame, v_bbox, label, frame_path, width, height)
             
-            placa = generate_mock_license_plate()
+            placa = extract_license_plate(frame, v_bbox, width, height)
             conf = round(confianza, 2)
             
             x1_n, y1_n, x2_n, y2_n = v_bbox
@@ -153,6 +154,139 @@ def _evaluate_custom_rules(
             logger.info(f"[Infracción Custom] {tipo_display} guardada en frame {frame_idx}")
 
 
+def _process_red_light_violation(
+    db: Session,
+    det: Dict[str, Any],
+    state_tracker: Dict[str, Any],
+    video_id: str,
+    timestamp_sec: float,
+    frame_idx: int,
+    frame: cv2.Mat,
+    frames_dir: str,
+    width: int,
+    height: int,
+    bbox_dict: Dict[str, Any]
+) -> None:
+    """Procesa la regla de infracción por cruce de semáforo en rojo."""
+    track_id = det["track_id"]
+    track = state_tracker["vehicles"][track_id]
+    positions = track["positions"]
+    
+    detected_stop_line_y = state_tracker.get("detected_stop_line_y")
+    is_red_light, desc_red_light = check_red_light_violation(
+        positions, height, state_tracker["traffic_light_state"], track, stop_line_y=detected_stop_line_y
+    )
+    if is_red_light:
+        infraccion_id = f"inf_{video_id[:8]}_sem_red_{track_id}"
+        frame_path = os.path.join(frames_dir, f"{infraccion_id}.jpg")
+        
+        # Buscar si el semáforo rojo fue detectado en este cuadro o recientemente
+        extra_objects = []
+        tl_bboxes = state_tracker.get("current_traffic_light_red_bboxes", [])
+        if not tl_bboxes and state_tracker.get("last_traffic_light_red_bbox"):
+            tl_bboxes = [state_tracker["last_traffic_light_red_bbox"]]
+            
+        for tl_bbox in tl_bboxes:
+            extra_objects.append((tl_bbox, "SEMAFORO EN ROJO", (50, 50, 255)))
+            
+        save_highlighted_frame(
+            frame, det["bbox"], f"ROJO - VEH {track_id}", 
+            frame_path, width, height, extra_objects=extra_objects
+        )
+        
+        db_infraction = Infraction(
+            id=infraccion_id,
+            video_id=video_id,
+            tipo="Cruce de semáforo en rojo",
+            frame_path=frame_path,
+            timestamp=timestamp_sec,
+            descripcion=desc_red_light,
+            placa_vehiculo=extract_license_plate(frame, det["bbox"], width, height),
+            confianza=round(det["confidence"], 2),
+            caja_delimitadora=bbox_dict
+        )
+        db.add(db_infraction)
+        logger.info(f"[Infracción] Semáforo en rojo de VEH {track_id} guardado en frame {frame_idx}")
+
+
+def _process_uturn_violation(
+    db: Session,
+    det: Dict[str, Any],
+    state_tracker: Dict[str, Any],
+    video_id: str,
+    timestamp_sec: float,
+    frame_idx: int,
+    frame: cv2.Mat,
+    frames_dir: str,
+    width: int,
+    height: int,
+    bbox_dict: Dict[str, Any]
+) -> None:
+    """Procesa la regla de infracción por giro prohibido en U."""
+    track_id = det["track_id"]
+    track = state_tracker["vehicles"][track_id]
+    positions = track["positions"]
+    
+    is_uturn, desc_uturn = check_uturn_violation(positions, height, track)
+    if is_uturn:
+        infraccion_id = f"inf_{video_id[:8]}_uturn_{track_id}"
+        frame_path = os.path.join(frames_dir, f"{infraccion_id}.jpg")
+        save_highlighted_frame(frame, det["bbox"], f"GIRO U - VEH {track_id}", frame_path, width, height)
+        
+        db_infraction = Infraction(
+            id=infraccion_id,
+            video_id=video_id,
+            tipo="Giro prohibido",
+            frame_path=frame_path,
+            timestamp=timestamp_sec,
+            descripcion=desc_uturn,
+            placa_vehiculo=extract_license_plate(frame, det["bbox"], width, height),
+            confianza=round(det["confidence"] - 0.05, 2),
+            caja_delimitadora=bbox_dict
+        )
+        db.add(db_infraction)
+        logger.info(f"[Infracción] Giro en U de VEH {track_id} guardado en frame {frame_idx}")
+
+
+def _process_parking_violation(
+    db: Session,
+    det: Dict[str, Any],
+    state_tracker: Dict[str, Any],
+    video_id: str,
+    timestamp_sec: float,
+    frame_idx: int,
+    frame: cv2.Mat,
+    frames_dir: str,
+    width: int,
+    height: int,
+    bbox_dict: Dict[str, Any]
+) -> None:
+    """Procesa la regla de infracción por estacionamiento prohibido."""
+    track_id = det["track_id"]
+    track = state_tracker["vehicles"][track_id]
+    positions = track["positions"]
+    
+    is_parking, desc_parking = check_parking_violation(det, positions, width, height, track)
+    if is_parking:
+        infraccion_id = f"inf_{video_id[:8]}_parking_{track_id}"
+        frame_path = os.path.join(frames_dir, f"{infraccion_id}.jpg")
+        save_highlighted_frame(frame, det["bbox"], f"PARQUEO - VEH {track_id}", frame_path, width, height)
+        
+        db_infraction = Infraction(
+            id=infraccion_id,
+            video_id=video_id,
+            tipo="Invasión de paso peatonal",
+            frame_path=frame_path,
+            timestamp=timestamp_sec,
+            descripcion=desc_parking,
+            placa_vehiculo=extract_license_plate(frame, det["bbox"], width, height),
+            confianza=round(det["confidence"], 2),
+            caja_delimitadora=bbox_dict
+        )
+        db.add(db_infraction)
+        logger.info(f"[Infracción] Estacionamiento de VEH {track_id} guardado en frame {frame_idx}")
+
+
 def _evaluate_traditional_rules(
     db: Session,
     vehicle_detections: List[Dict[str, Any]],
@@ -171,9 +305,6 @@ def _evaluate_traditional_rules(
         if not track_id:
             continue
             
-        track = state_tracker["vehicles"][track_id]
-        positions = track["positions"]
-        
         x1_n, y1_n, x2_n, y2_n = det["bbox"]
         bbox_dict = {
             "x_min": round(x1_n, 2),
@@ -182,80 +313,84 @@ def _evaluate_traditional_rules(
             "y_max": round(y2_n, 2)
         }
 
-        # Regla A: Cruce de Semáforo en Rojo
-        is_red_light, desc_red_light = check_red_light_violation(
-            positions, height, state_tracker["traffic_light_state"], track
+        # Evaluar cada regla con su función helper
+        _process_red_light_violation(db, det, state_tracker, video_id, timestamp_sec, frame_idx, frame, frames_dir, width, height, bbox_dict)
+        _process_uturn_violation(db, det, state_tracker, video_id, timestamp_sec, frame_idx, frame, frames_dir, width, height, bbox_dict)
+        _process_parking_violation(db, det, state_tracker, video_id, timestamp_sec, frame_idx, frame, frames_dir, width, height, bbox_dict)
+
+
+def _update_traffic_state_from_detections(state_tracker: Dict[str, Any], current_detections: List[Dict[str, Any]], height: int) -> None:
+    """Actualiza dinámicamente el estado del semáforo si el modelo detecta luces reales o línea de parada."""
+    for det in current_detections:
+        c_name = det["class_name"]
+        if c_name in ["traffic_light_red", "traffic_light_green", "traffic_light_yellow"]:
+            state_tracker["has_real_traffic_light"] = True
+            if c_name == "traffic_light_red":
+                state_tracker["traffic_light_state"] = "RED"
+            elif c_name == "traffic_light_green":
+                state_tracker["traffic_light_state"] = "GREEN"
+            elif c_name == "traffic_light_yellow":
+                state_tracker["traffic_light_state"] = "YELLOW"
+        elif c_name == "stop_line":
+            # Coordenada Y de la línea de parada detectada por el modelo custom
+            y_min_n = det["bbox"][1]
+            y_max_n = det["bbox"][3]
+            state_tracker["detected_stop_line_y"] = ((y_min_n + y_max_n) / 2) * height
+
+
+def _process_video_frame(
+    frame: cv2.Mat,
+    frame_idx: int,
+    state_tracker: Dict[str, Any],
+    centroid_tracker: CentroidTracker,
+    frame_skip: int,
+    width: int,
+    height: int,
+    fps: float,
+    db: Session,
+    video_id: str,
+    frames_dir: str
+) -> bool:
+    """Procesa un fotograma individual aplicando inferencia YOLO y evaluando reglas de tránsito."""
+    # Solo actualizar con el temporizador simulado si no hay luces reales detectadas
+    if not state_tracker.get("has_real_traffic_light", False):
+        _update_traffic_light_state(state_tracker)
+    
+    if frame_idx % frame_skip != 0:
+        return False
+        
+    current_detections = predict_frame(frame, frame_idx, state_tracker, width, height)
+    
+    # Actualización dinámica del estado del semáforo si el modelo detecta luces reales o línea de parada
+    _update_traffic_state_from_detections(state_tracker, current_detections, height)
+    
+    # Filtrar solo vehículos para el tracker
+    vehicle_detections = [
+        d for d in current_detections 
+        if d["class_name"] in ["vehicle", "car", "motorcycle", "bus", "truck"]
+    ]
+    centroid_tracker.update(state_tracker["vehicles"], vehicle_detections, frame_idx)
+    
+    # Verificar si existen clasificaciones directas de infracción en las detecciones
+    has_direct_infractions = any(
+        d["class_name"] in ["infraccion_rojo", "infraccion_paso", "infraccion_giro"]
+        for d in current_detections
+    )
+    
+    timestamp_sec = round(frame_idx / fps, 2)
+    
+    if has_direct_infractions:
+        _evaluate_custom_rules(
+            db, current_detections, video_id, timestamp_sec, 
+            frame_idx, frame, frames_dir, width, height
         )
-        if is_red_light:
-            infraccion_id = f"inf_{video_id[:8]}_sem_red_{track_id}"
-            frame_path = os.path.join(frames_dir, f"{infraccion_id}.jpg")
-            
-            # Buscar si el semáforo rojo fue detectado en este cuadro o recientemente
-            extra_objects = []
-            tl_bbox = state_tracker.get("last_traffic_light_red_bbox")
-            if tl_bbox:
-                extra_objects.append((tl_bbox, "SEMAFORO EN ROJO", (50, 50, 255)))
-                
-            save_highlighted_frame(
-                frame, det["bbox"], f"ROJO - VEH {track_id}", 
-                frame_path, width, height, extra_objects=extra_objects
-            )
-            
-            db_infraction = Infraction(
-                id=infraccion_id,
-                video_id=video_id,
-                tipo="Cruce de semáforo en rojo",
-                frame_path=frame_path,
-                timestamp=timestamp_sec,
-                descripcion=desc_red_light,
-                placa_vehiculo=generate_mock_license_plate(),
-                confianza=round(det["confidence"], 2),
-                caja_delimitadora=bbox_dict
-            )
-            db.add(db_infraction)
-            logger.info(f"[Infracción] Semáforo en rojo de VEH {track_id} guardado en frame {frame_idx}")
-
-        # Regla B: Giro Prohibido en U
-        is_uturn, desc_uturn = check_uturn_violation(positions, height, track)
-        if is_uturn:
-            infraccion_id = f"inf_{video_id[:8]}_uturn_{track_id}"
-            frame_path = os.path.join(frames_dir, f"{infraccion_id}.jpg")
-            save_highlighted_frame(frame, det["bbox"], f"GIRO U - VEH {track_id}", frame_path, width, height)
-            
-            db_infraction = Infraction(
-                id=infraccion_id,
-                video_id=video_id,
-                tipo="Giro prohibido",
-                frame_path=frame_path,
-                timestamp=timestamp_sec,
-                descripcion=desc_uturn,
-                placa_vehiculo=generate_mock_license_plate(),
-                confianza=round(det["confidence"] - 0.05, 2),
-                caja_delimitadora=bbox_dict
-            )
-            db.add(db_infraction)
-            logger.info(f"[Infracción] Giro en U de VEH {track_id} guardado en frame {frame_idx}")
-
-        # Regla C: Estacionamiento Prohibido / Invasión de paso peatonal
-        is_parking, desc_parking = check_parking_violation(det, positions, width, height, track)
-        if is_parking:
-            infraccion_id = f"inf_{video_id[:8]}_parking_{track_id}"
-            frame_path = os.path.join(frames_dir, f"{infraccion_id}.jpg")
-            save_highlighted_frame(frame, det["bbox"], f"PARQUEO - VEH {track_id}", frame_path, width, height)
-            
-            db_infraction = Infraction(
-                id=infraccion_id,
-                video_id=video_id,
-                tipo="Invasión de paso peatonal",
-                frame_path=frame_path,
-                timestamp=timestamp_sec,
-                descripcion=desc_parking,
-                placa_vehiculo=generate_mock_license_plate(),
-                confianza=round(det["confidence"], 2),
-                caja_delimitadora=bbox_dict
-            )
-            db.add(db_infraction)
-            logger.info(f"[Infracción] Estacionamiento de VEH {track_id} guardado en frame {frame_idx}")
+    
+    # Siempre evaluar las reglas de tránsito geométricas tradicionales sobre los vehículos detectados
+    _evaluate_traditional_rules(
+        db, vehicle_detections, state_tracker, video_id, 
+        timestamp_sec, frame_idx, frame, frames_dir, width, height
+    )
+    return True
 
 
 def process_video(video_path: str, video_id: str) -> None:
@@ -279,7 +414,7 @@ def process_video(video_path: str, video_id: str) -> None:
             )
             db.close()
             return
-
+ 
         # Extracción de metadatos del video
         fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 640
@@ -287,12 +422,12 @@ def process_video(video_path: str, video_id: str) -> None:
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         
         logger.info(f"[VideoProcessor] Metadatos -> FPS: {fps}, Resolución: {width}x{height}, Total Frames: {total_frames}")
-
+ 
         # Asegurar directorio de fotogramas de evidencia
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         frames_dir = os.path.join(base_dir, "uploads", "frames")
         os.makedirs(frames_dir, exist_ok=True)
-
+ 
         state_tracker = {
             "vehicles": {},
             "traffic_light_state": "GREEN",
@@ -304,59 +439,19 @@ def process_video(video_path: str, video_id: str) -> None:
         frame_idx = 0
         start_time = time.time()
         
-        # Factor de salto de fotogramas para optimizar velocidad y memoria en Render (procesa ~3 FPS en videos de 30 FPS)
-        FRAME_SKIP = 10
+        # Factor de salto de fotogramas (por defecto 2 localmente para mayor precisión, 10 en Render/bajos recursos)
+        default_skip = 10 if os.getenv("DISABLE_YOLO", "false").lower() == "true" else 2
+        frame_skip = int(os.getenv("FRAME_SKIP", str(default_skip)))
         
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
                 break
                 
-            _update_traffic_light_state(state_tracker)
-            
-            if frame_idx % FRAME_SKIP != 0:
-                frame_idx += 1
-                continue
-                
-            current_detections = predict_frame(frame, frame_idx, state_tracker, width, height)
-            
-            # Actualización dinámica del estado del semáforo si el modelo detecta luces reales
-            for det in current_detections:
-                c_name = det["class_name"]
-                if c_name == "traffic_light_red":
-                    state_tracker["traffic_light_state"] = "RED"
-                elif c_name == "traffic_light_green":
-                    state_tracker["traffic_light_state"] = "GREEN"
-                elif c_name == "traffic_light_yellow":
-                    state_tracker["traffic_light_state"] = "YELLOW"
-            
-            # Filtrar solo vehículos para el tracker
-            vehicle_detections = [
-                d for d in current_detections 
-                if d["class_name"] in ["vehicle", "car", "motorcycle", "bus", "truck"]
-            ]
-            centroid_tracker.update(state_tracker["vehicles"], vehicle_detections, frame_idx)
-            
-            # Verificar si existen clasificaciones directas de infracción en las detecciones
-            has_direct_infractions = any(
-                d["class_name"] in ["infraccion_rojo", "infraccion_paso", "infraccion_giro"]
-                for d in current_detections
+            _process_video_frame(
+                frame, frame_idx, state_tracker, centroid_tracker,
+                frame_skip, width, height, fps, db, video_id, frames_dir
             )
-            
-            timestamp_sec = round(frame_idx / fps, 2)
-            
-            if has_direct_infractions:
-                _evaluate_custom_rules(
-                    db, current_detections, video_id, timestamp_sec, 
-                    frame_idx, frame, frames_dir, width, height
-                )
-            
-            # Siempre evaluar las reglas de tránsito geométricas tradicionales sobre los vehículos detectados
-            _evaluate_traditional_rules(
-                db, vehicle_detections, state_tracker, video_id, 
-                timestamp_sec, frame_idx, frame, frames_dir, width, height
-            )
-                
             frame_idx += 1
             
         cap.release()

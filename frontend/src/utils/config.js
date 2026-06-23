@@ -5,7 +5,7 @@ export const getBackendUrl = () => {
   // 1. Usar la variable de entorno de Vite si está disponible
   let url = import.meta.env.VITE_API_URL;
   
-  if (url && url.trim() !== '' && url !== 'undefined') {
+  if (url && url.trim() !== '' && url !== 'undefined' && !url.includes('${') && !url.startsWith('$')) {
     if (url.endsWith('/')) {
       url = url.slice(0, -1);
     }
@@ -13,7 +13,7 @@ export const getBackendUrl = () => {
   }
   
   // 2. Si no, autodetectar si corre en Render
-  const origin = window.location.origin;
+  const origin = globalThis.location.origin;
   if (origin.includes('traffic-violations-frontend.onrender.com')) {
     return 'https://traffic-violations-backend.onrender.com';
   }

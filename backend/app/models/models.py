@@ -5,6 +5,10 @@ from sqlalchemy import Column, String, Float, DateTime, ForeignKey, JSON, func, 
 from sqlalchemy.orm import relationship
 from app.db import Base
 
+# Constants for SQLAlchemy cascade and delete options to resolve SonarQube duplication issues
+ONDELETE_SET_NULL = "SET NULL"
+CASCADE_ALL_DELETE_ORPHAN = "all, delete-orphan"
+
 # =====================================================================
 # TABLAS DE ASOCIACIÓN Y RELACIÓN DE MUCHOS A MUCHOS
 # =====================================================================
@@ -50,7 +54,7 @@ class Location(Base):
     name = Column(String(255), nullable=False)
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
-    district_id = Column(String(36), ForeignKey("districts.id", ondelete="SET NULL"), nullable=True)
+    district_id = Column(String(36), ForeignKey("districts.id", ondelete=ONDELETE_SET_NULL), nullable=True)
     
     district = relationship("District", back_populates="locations")
     cameras = relationship("Camera", back_populates="location")
@@ -63,7 +67,7 @@ class Camera(Base):
     resolution = Column(String(50), nullable=False)
     status = Column(String(50), default="offline")
     manufacturer = Column(String(100), nullable=True)
-    location_id = Column(String(36), ForeignKey("locations.id", ondelete="SET NULL"), nullable=True)
+    location_id = Column(String(36), ForeignKey("locations.id", ondelete=ONDELETE_SET_NULL), nullable=True)
     
     location = relationship("Location", back_populates="cameras")
 
@@ -87,11 +91,11 @@ class Video(Base):
     status = Column(String(50), default="procesando", nullable=False)
     error_message = Column(String(1000), nullable=True)
     tiempo_procesamiento_segundos = Column(Float, nullable=True)
-    ai_model_id = Column(String(36), ForeignKey("ai_models.id", ondelete="SET NULL"), nullable=True)
+    ai_model_id = Column(String(36), ForeignKey("ai_models.id", ondelete=ONDELETE_SET_NULL), nullable=True)
     
     ai_model = relationship("AIModel", back_populates="videos")
-    infractions = relationship("Infraction", back_populates="video", cascade="all, delete-orphan")
-    jobs = relationship("ProcessingJob", back_populates="video", cascade="all, delete-orphan")
+    infractions = relationship("Infraction", back_populates="video", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    jobs = relationship("ProcessingJob", back_populates="video", cascade=CASCADE_ALL_DELETE_ORPHAN)
 
 
 class ProcessingJob(Base):
@@ -128,7 +132,7 @@ class Infraction(Base):
     caja_delimitadora = Column(JSON, nullable=False)
     
     video = relationship("Video", back_populates="infractions")
-    citations = relationship("Citation", back_populates="infraction", cascade="all, delete-orphan")
+    citations = relationship("Citation", back_populates="infraction", cascade=CASCADE_ALL_DELETE_ORPHAN)
 
 
 class Vehicle(Base):
@@ -165,7 +169,7 @@ class Citation(Base):
     citation_id = Column(String(50), primary_key=True, index=True)
     infraction_id = Column(String(50), ForeignKey("infractions.id", ondelete="CASCADE"), nullable=False)
     owner_id = Column(String(50), ForeignKey("vehicle_owners.owner_id", ondelete="CASCADE"), nullable=False)
-    plate_number = Column(String(20), ForeignKey("vehicles.plate_number", ondelete="SET NULL"), nullable=True)
+    plate_number = Column(String(20), ForeignKey("vehicles.plate_number", ondelete=ONDELETE_SET_NULL), nullable=True)
     issue_date = Column(DateTime(timezone=True), server_default=func.now())
     fine_amount = Column(Float, nullable=False)
     due_date = Column(Date, nullable=False)
@@ -174,8 +178,8 @@ class Citation(Base):
     infraction = relationship("Infraction", back_populates="citations")
     owner = relationship("VehicleOwner", back_populates="citations")
     vehicle = relationship("Vehicle", back_populates="citations")
-    payments = relationship("Payment", back_populates="citation", cascade="all, delete-orphan")
-    appeals = relationship("CitationAppeal", back_populates="citation", cascade="all, delete-orphan")
+    payments = relationship("Payment", back_populates="citation", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    appeals = relationship("CitationAppeal", back_populates="citation", cascade=CASCADE_ALL_DELETE_ORPHAN)
 
 
 class Payment(Base):
@@ -208,7 +212,7 @@ class Officer(Base):
     badge_number = Column(String(50), primary_key=True, index=True)
     name = Column(String(150), nullable=False)
     rank = Column(String(100), nullable=True)
-    district_id = Column(String(36), ForeignKey("districts.id", ondelete="SET NULL"), nullable=True)
+    district_id = Column(String(36), ForeignKey("districts.id", ondelete=ONDELETE_SET_NULL), nullable=True)
     
     district = relationship("District", back_populates="officers")
     assignments = relationship("OfficerAssignment", back_populates="officer")
@@ -228,7 +232,7 @@ class OfficerAssignment(Base):
 class AuditLog(Base):
     __tablename__ = "audit_logs"
     log_id = Column(String(36), primary_key=True, index=True)
-    user_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete=ONDELETE_SET_NULL), nullable=True)
     action = Column(String(100), nullable=False)
     table_name = Column(String(100), nullable=False)
     details = Column(String(2000), nullable=True)
@@ -277,6 +281,7 @@ class VideoStatusResponse(BaseModel):
     fecha_subida: Optional[datetime.datetime] = None
     status: str
     infractions: List[InfractionSchema] = []
+    infracciones: List[InfractionSchema] = []
     error_message: Optional[str] = None
     tiempo_procesamiento_segundos: Optional[float] = None
 
@@ -488,3 +493,18 @@ class AuditLogSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class OperationalizationIndicator(BaseModel):
+    id: str
+    nombre: str
+    formula: str
+    dimension: str
+    valor: float
+    detalle: str
+    instrumento: str
+
+
+class OperationalizationResponse(BaseModel):
+    indicadores: List[OperationalizationIndicator]
+

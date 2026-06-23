@@ -3,7 +3,7 @@ import uuid
 import shutil
 import logging
 import datetime
-from typing import List, Optional
+from typing import List, Optional, Annotated
 from fastapi import APIRouter, UploadFile, File, HTTPException, BackgroundTasks, Depends
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
@@ -128,6 +128,7 @@ async def upload_video(
     }
 
 @router.get("/infractions/{video_id}", response_model=VideoStatusResponse)
+@router.get("/infracciones/{video_id}", response_model=VideoStatusResponse)
 async def get_infractions(video_id: str, db: Session = Depends(get_db)) -> dict:
     """
     Retorna el estado actual y el JSON con la relación completa de infracciones
@@ -149,6 +150,7 @@ async def get_infractions(video_id: str, db: Session = Depends(get_db)) -> dict:
             "fecha_subida": video_data.fecha_subida,
             "status": video_data.status,
             "infractions": video_data.infractions,
+            "infracciones": video_data.infractions,
             "error_message": video_data.error_message,
             "tiempo_procesamiento_segundos": video_data.tiempo_procesamiento_segundos
         }
@@ -307,7 +309,7 @@ async def get_processing_jobs(db: Session = Depends(get_db)) -> List[ProcessingJ
     return db.query(ProcessingJob).order_by(ProcessingJob.start_time.desc()).all()
 
 @router.get("/audit-logs/list", response_model=List[AuditLogSchema])
-async def get_audit_logs(db: Session = Depends(get_db)) -> List[AuditLog]:
+async def get_audit_logs(db: Annotated[Session, Depends(get_db)]) -> List[AuditLog]:
     """
     Retorna el registro completo de logs de auditoría para la seguridad del sistema.
     """
@@ -315,7 +317,7 @@ async def get_audit_logs(db: Session = Depends(get_db)) -> List[AuditLog]:
     return db.query(AuditLog).order_by(AuditLog.timestamp.desc()).all()
 
 @router.get("/debug/list-videos")
-async def debug_list_videos(db: Session = Depends(get_db)):
+async def debug_list_videos(db: Annotated[Session, Depends(get_db)]):
     videos = db.query(Video).order_by(Video.fecha_subida.desc()).all()
     return [
         {

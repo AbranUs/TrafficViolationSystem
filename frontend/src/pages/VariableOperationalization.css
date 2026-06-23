@@ -1,0 +1,394 @@
+/* ESTILOS PARA LA PESTAÑA DE OPERACIONALIZACIÓN DE LA VARIABLE INDEPENDIENTE */
+
+.op-page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Banner de Información Metodológica */
+.info-banner {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem !important;
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.05) !important;
+  border: 1px solid rgba(99, 102, 241, 0.15) !important;
+  margin-bottom: 2rem;
+  align-items: flex-start;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.05);
+}
+
+.banner-icon-box {
+  font-size: 1.5rem;
+  background: rgba(99, 102, 241, 0.12);
+  padding: 0.5rem;
+  border-radius: 8px;
+  line-height: 1;
+}
+
+.banner-text {
+  font-size: 0.9rem;
+  color: #e2e8f0;
+  line-height: 1.5;
+}
+
+.banner-text p {
+  margin: 0.5rem 0 0 0;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+/* Barra de Filtros por Dimensión */
+.filter-bar-operationalization {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+.filter-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-right: 0.5rem;
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-btn {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.25s ease;
+}
+
+.filter-btn:hover {
+  color: #ffffff;
+  background: #1e293b;
+  border-color: #475569;
+}
+
+.active-filter {
+  background: #3730a3 !important;
+  border-color: #4f46e5 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+}
+
+.btn-refresh-op {
+  margin-left: auto;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.3s ease;
+}
+
+.btn-refresh-op:hover {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+@media (max-width: 800px) {
+  .btn-refresh-op {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Layout del Módulo */
+.matrix-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Grid de Tarjetas KPI */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem !important;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.kpi-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+}
+
+.bg-indigo-glow {
+  background-color: #1e1b4b;
+  color: #a5b4fc;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.15);
+}
+
+.bg-violet-glow {
+  background-color: #2e1065;
+  color: #c084fc;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
+}
+
+.bg-cyan-glow {
+  background-color: #083344;
+  color: #22d3ee;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.15);
+}
+
+.bg-green-glow {
+  background-color: #064e3b;
+  color: #34d399;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+}
+
+.kpi-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.kpi-lbl {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kpi-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #f8fafc;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Panel de Tabla */
+.table-header-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.panel-title-op {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.count-badge {
+  font-size: 0.75rem;
+  background-color: #1e293b;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.op-table th {
+  padding: 1rem 1.25rem !important;
+  font-size: 0.78rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.op-table td {
+  padding: 1.25rem !important;
+  font-size: 0.85rem !important;
+  vertical-align: middle;
+}
+
+/* Celdas de Dimensiones con iconos */
+.dim-cell {
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.dim-cell-content {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dim-icon {
+  flex-shrink: 0;
+}
+
+.glow-indigo { filter: drop-shadow(0 0 4px #6366f1); color: #a5b4fc; }
+.glow-violet { filter: drop-shadow(0 0 4px #8b5cf6); color: #c084fc; }
+.glow-cyan { filter: drop-shadow(0 0 4px #06b6d4); color: #22d3ee; }
+.glow-green { filter: drop-shadow(0 0 4px #10b981); color: #34d399; }
+
+/* Texto de Fórmulas y Códigos */
+.formula-text {
+  color: #a5b4fc !important;
+  font-size: 0.78rem !important;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+/* Badge de Valor Real y Barra de Progreso */
+.val-badge-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.val-text-primary {
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-family: monospace;
+}
+
+.op-progress-bar-bg {
+  width: 80px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.op-progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Detalles e Instrumento */
+.detail-text {
+  font-size: 0.8rem !important;
+  color: #94a3b8 !important;
+  line-height: 1.4;
+}
+
+.instrument-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  border: 1px solid #334155;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background-color: #0f172a;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Guía Metodológica */
+.methodology-guide {
+  padding: 1.5rem 1.75rem !important;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.section-title-op {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.methodology-guide p {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0 0 1.25rem 0;
+}
+
+.methodology-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .methodology-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+.methodology-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.methodology-item strong {
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.methodology-item span {
+  font-size: 0.8rem;
+  color: #8492a6;
+  line-height: 1.4;
+}
+
+/* Animaciones */
+.animate-width {
+  animation: fillWidth 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fillWidth {
+  from { width: 0; }
+}
