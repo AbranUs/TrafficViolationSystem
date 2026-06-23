@@ -95,7 +95,8 @@ def _evaluate_custom_rules(
     frame: cv2.Mat,
     frames_dir: str,
     width: int,
-    height: int
+    height: int,
+    filename: str = ""
 ) -> None:
     """Evalúa detecciones del modelo custom entrenado y las almacena como infracciones directas."""
     for det in current_detections:
@@ -128,7 +129,7 @@ def _evaluate_custom_rules(
             v_bbox = det["bbox"]
             save_highlighted_frame(frame, v_bbox, label, frame_path, width, height)
             
-            placa = extract_license_plate(frame, v_bbox, width, height)
+            placa = extract_license_plate(frame, v_bbox, width, height, filename)
             conf = round(confianza, 2)
             
             x1_n, y1_n, x2_n, y2_n = v_bbox
@@ -201,7 +202,7 @@ def _process_red_light_violation(
             frame_path=frame_path,
             timestamp=timestamp_sec,
             descripcion=desc_red_light,
-            placa_vehiculo=extract_license_plate(frame, det["bbox"], width, height),
+            placa_vehiculo=extract_license_plate(frame, det["bbox"], width, height, state_tracker.get("filename", "")),
             confianza=round(det["confidence"], 2),
             caja_delimitadora=bbox_dict
         )
@@ -240,7 +241,7 @@ def _process_uturn_violation(
             frame_path=frame_path,
             timestamp=timestamp_sec,
             descripcion=desc_uturn,
-            placa_vehiculo=extract_license_plate(frame, det["bbox"], width, height),
+            placa_vehiculo=extract_license_plate(frame, det["bbox"], width, height, state_tracker.get("filename", "")),
             confianza=round(det["confidence"] - 0.05, 2),
             caja_delimitadora=bbox_dict
         )
@@ -279,7 +280,7 @@ def _process_parking_violation(
             frame_path=frame_path,
             timestamp=timestamp_sec,
             descripcion=desc_parking,
-            placa_vehiculo=extract_license_plate(frame, det["bbox"], width, height),
+            placa_vehiculo=extract_license_plate(frame, det["bbox"], width, height, state_tracker.get("filename", "")),
             confianza=round(det["confidence"], 2),
             caja_delimitadora=bbox_dict
         )
@@ -382,7 +383,8 @@ def _process_video_frame(
     if has_direct_infractions:
         _evaluate_custom_rules(
             db, current_detections, video_id, timestamp_sec, 
-            frame_idx, frame, frames_dir, width, height
+            frame_idx, frame, frames_dir, width, height,
+            filename=state_tracker.get("filename", "")
         )
     
     # Siempre evaluar las reglas de tránsito geométricas tradicionales sobre los vehículos detectados
