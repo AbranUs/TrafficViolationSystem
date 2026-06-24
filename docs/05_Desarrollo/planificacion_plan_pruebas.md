@@ -63,3 +63,5 @@ Para validar la consistencia de las variables e indicadores del sistema, se impl
     ```
 *   **Verificación de Cobertura**: Genera reportes interactivos HTML en la carpeta `htmlcov/` y archivos XML para auditoría estática de calidad.
 *   **SonarQube Quality Gate**: Evalúa que no se introduzcan bugs, vulnerabilidades o código duplicado en las lógicas del sistema antes de subir cambios a producción.
+*   **Resultados de la Ejecución**: Consulta el detalle y los logs de aprobación del 100% de los casos en el **[Reporte de Resultados de Pruebas](file:///c:/TrafficViolationSystem/docs/05_Desarrollo/reporte_resultados_pruebas.md)**.
+
