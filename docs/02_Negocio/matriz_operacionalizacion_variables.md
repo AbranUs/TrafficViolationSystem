@@ -5,33 +5,35 @@
 
 ## 1. Definición Conceptual y Operacional de las Variables
 
-Para validar científicamente el desempeño e impacto del **TrafficViolationSystem**, se ha modelado el marco metodológico del proyecto en torno a la relación de sus variables clave.
+Para validar científicamente el desempeño e impacto del **TrafficViolationSystem**, se ha modelado el marco metodológico del proyecto en torno a la relación de sus variables clave, sustentado en literatura científica y libros de referencia.
 
 ### A. Variable Independiente: Sistema de Control Vial Inteligente basado en Visión de Computadora (IA)
-* **Definición Conceptual**: Es una plataforma de software integrada por redes neuronales convolucionales de detección de objetos, algoritmos lógicos de seguimiento y procesamiento de imágenes, diseñada para identificar automáticamente infracciones de tránsito a partir de señales de video y registrar evidencias relacionales en una base de datos estructurada.
-* **Definición Operacional**: Se mide cuantitativamente a través de la precisión de los modelos de inferencia, la tasa de lectura automática de matrículas (OCR), la velocidad de procesamiento de video, la disponibilidad de la infraestructura y el volumen de auditoría operativa recopilados dinámicamente en tiempo real desde las tablas de la base de datos SQL.
+*   **Definición Conceptual**: Es una plataforma de software integrada por redes neuronales convolucionales de detección de objetos, algoritmos lógicos de seguimiento y procesamiento de imágenes, diseñada para identificar automáticamente infracciones de tránsito a partir de señales de video y registrar evidencias relacionales en una base de datos estructurada.
+*   **Definición Operacional**: Se mide cuantitativamente a través de la precisión de los modelos de inferencia, la tasa de lectura automática de matrículas (OCR), la velocidad de procesamiento de video, la disponibilidad de la infraestructura y el volumen de auditoría operativa recopilados dinámicamente en tiempo real desde las tablas de la base de datos SQL.
+*   **Correlación con Libro de Referencia**: **\"Computer Vision: Algorithms and Applications\"** (Richard Szeliski, 2.ª Edición, Springer, 2022). Este libro sustenta los métodos de segmentación de imágenes, detección de objetos con redes neuronales, seguimiento de centroides mediante distancia euclidiana y alineación de bounding boxes sobre video digital.
 
 ### B. Variable Dependiente: Eficacia en la Fiscalización y Gestión de Siniestralidad Vial
-* **Definición Conceptual**: Grado en el que las autoridades de tránsito reducen la impunidad vial, agilizan la auditoría de papeletas por los oficiales de tránsito, disminuyen los incidentes viales graves en intersecciones críticas y mejoran la recaudación económica de la municipalidad.
-* **Definición Operacional**: Se mide mediante la reducción del tiempo promedio de validación de multas por los operadores (segundos por infracción), la reducción porcentual de apelaciones ciudadanas exitosas sustentadas en la inmutabilidad de la prueba, y la tendencia mensual de infracciones detectadas por el sistema.
+*   **Definición Conceptual**: Grado en el que las autoridades de tránsito reducen la impunidad vial, agilizan la auditoría de papeletas por los oficiales de tránsito, disminuyen los incidentes viales graves en intersecciones críticas y mejoran la recaudación económica de la municipalidad.
+*   **Definición Operacional**: Se mide mediante la reducción del tiempo promedio de validación de multas por los operadores (segundos por infracción), la reducción de siniestralidad en zonas con cámaras activas, y la efectividad de la emisión de boletas apoyada en evidencias JPG inmutables.
+*   **Correlación con Libro de Referencia**: **\"Traffic Engineering\"** (Roger P. Roess, Elena S. Prassas y William R. McShane, 5.ª Edición, Pearson, 2019). Este texto de referencia sustenta la caracterización del flujo vehicular, el diseño de intersecciones semaforizadas y la evaluación del impacto de sistemas tecnológicos automatizados de fotomultas en la reducción de tasas de accidentes urbanos.
 
 ---
 
-## 2. Matriz de Operacionalización de Variables (Enfoque Cuantitativo)
+## 2. Matriz de Operacionalización de Variables con Antecedentes y Referencias
 
-El sistema calcula y expone los indicadores de la variable independiente en tiempo real mediante consultas SQL unificadas disponibles en el endpoint `/api/v1/analytics/operationalization`. A continuación, se detalla la matriz completa:
+El sistema calcula y expone los indicadores de la variable independiente en tiempo real desde la base de datos. A continuación, se detalla la matriz completa enriquecida con su correlación académica:
 
-| Dimensión | Variable Operativa / Indicador | ID de Indicador | Fórmula Matemática de Cálculo | Tipo de Dato SQL / Campos de Mapeo Relacional | Instrumento de Recolección |
-| :--- | :--- | :---: | :--- | :--- | :--- |
-| **Visión Artificial e Inferencia de Tránsito** | **Tasa de Precisión de Modelos IA** | `ind_precision_modelo` | $$\frac{\sum \text{AIModel.accuracy\_score}}{\text{Total Modelos}} \times 100$$ | `Float` <br>Tabla: `ai_models`<br>Campo: `accuracy_score` | Ficha de evaluación técnica del modelo de IA (YOLOv8). |
-| | **Nivel de Confianza Promedio** | `ind_confianza_infracciones` | $$\frac{\sum \text{Infraction.confianza}}{\text{Total Infracciones}} \times 100$$ | `Float` <br>Tabla: `infractions`<br>Campo: `confianza` | Registro de auditoría de confianza del motor de IA (`ia_service.py`). |
-| | **Tasa de Eficacia de Detección de Placas (OCR)** | `ind_ocr_placas` | $$\frac{\text{Infracciones con Placa Registrada}}{\text{Total de Infracciones}} \times 100$$ | `String` (Filtro no nulo/vacío) <br>Tabla: `infractions`<br>Campo: `placa_vehiculo` | Ficha técnica de validación del servicio OCR de lectura de patentes. |
-| **Desempeño y Rendimiento Técnico** | **Tasa de Éxito en Procesamiento de Videos** | `ind_exito_procesamiento` | $$\frac{\text{Videos con Estado "completado"}}{\text{Total de Videos Cargados}} \times 100$$ | `String` (Filtro 'completado') <br>Tabla: `videos`<br>Campo: `status` | Log de tareas en segundo plano de FastAPI (`BackgroundTasks`). |
-| | **Velocidad Promedio de Inferencia por Video** | `ind_velocidad_inferencia` | $$\frac{\sum \text{Video.tiempo\_procesamiento}}{\text{Total de Videos Procesados}}$$ | `Float` (Segundos de duración) <br>Tabla: `videos`<br>Campo: `tiempo_procesamiento_segundos` | Temporizador interno de procesamiento OpenCV e inferencia PyTorch. |
-| **Equipamiento y Cobertura de Infraestructura Vial** | **Tasa de Operatividad de Cámaras de Monitoreo** | `ind_operatividad_camaras` | $$\frac{\text{Cámaras con Estado "online"}}{\text{Total de Cámaras Registradas}} \times 100$$ | `String` (Filtro 'online') <br>Tabla: `cameras`<br>Campo: `status` | Registro de control de latido (*heartbeat*) de red vial IP. |
-| | **Índice de Cobertura Geográfica de Monitoreo** | `ind_cobertura_geografica` | $$\frac{\text{Intersecciones con Cámaras Online}}{\text{Total de Intersecciones Registradas}} \times 100$$ | `String` (Conteo distinto de ids)<br>Tablas: `cameras` y `locations`<br>Campos: `location_id`, `locations.id` | Base de datos de geolocalización y mapa de intersecciones urbanas. |
-| **Gestión de Control y Auditoría Operativa** | **Tasa de Personal de Guardia Activo** | `ind_personal_vial` | $$\frac{\text{Agentes con Asignación de Turno}}{\text{Total de Agentes Viales}} \times 100$$ | `String` (Conteo distinto)<br>Tablas: `officers`, `officer_assignments`<br>Campos: `badge_number` | Sistema de asignación de guardia, turnos y personal policial. |
-| | **Volumen de Auditoría de Operaciones** | `ind_auditoria_sistema` | $$\text{Count}(\text{AuditLog.log\_id})$$ | `Integer` (Conteo absoluto)<br>Tabla: `audit_logs`<br>Campo: `log_id` | Bitácora de transacciones del sistema y auditoría de accesos. |
+| Dimensión | Variable Operativa / Indicador | ID de Indicador | Fórmula Matemática de Cálculo | Campos SQL / Mapeo Relacional | Instrumento de Recolección | Correlación con Antecedente (Estado del Arte) |
+| :--- | :--- | :---: | :--- | :--- | :--- | :--- |
+| **Visión Artificial e Inferencia de Tránsito** | **Tasa de Precisión de Modelos IA** | `ind_precision_modelo` | $$\frac{\sum \text{AIModel.accuracy\_score}}{\text{Total Modelos}} \times 100$$ | `Float` <br>Tabla: `ai_models`<br>Campo: `accuracy_score` | Ficha de evaluación técnica del modelo de IA (YOLOv8). | **Art. 01**: Detección vehicular basada en YOLOv8 y PyTorch en entornos viales. |
+| | **Nivel de Confianza Promedio** | `ind_confianza_infracciones` | $$\frac{\sum \text{Infraction.confianza}}{\text{Total Infracciones}} \times 100$$ | `Float` <br>Tabla: `infractions`<br>Campo: `confianza` | Registro de auditoría de confianza del motor de IA (`ia_service.py`). | **Art. 03**: Análisis de confiabilidad en sistemas de fotomultas de semáforos. |
+| | **Tasa de Eficacia de Detección de Placas (OCR)** | `ind_ocr_placas` | $$\frac{\text{Infracciones con Placa Registrada}}{\text{Total de Infracciones}} \times 100$$ | `String` (Filtro no nulo)<br>Tabla: `infractions`<br>Campo: `placa_vehiculo` | Ficha técnica de validación del servicio OCR de lectura de patentes. | **Art. 02**: Segmentación y lectura de placas vehiculares mediante redes OCR. |
+| **Desempeño y Rendimiento Técnico** | **Tasa de Éxito en Procesamiento de Videos** | `ind_exito_procesamiento` | $$\frac{\text{Videos con Estado "completado"}}{\text{Total de Videos Cargados}} \times 100$$ | `String` (Filtro 'completado')<br>Tabla: `videos`<br>Campo: `status` | Log de tareas en segundo plano de FastAPI (`BackgroundTasks`). | **Art. 05**: Inferencia paralela y procesamiento secuencial en servidores API. |
+| | **Velocidad Promedio de Inferencia por Video** | `ind_velocidad_inferencia` | $$\frac{\sum \text{Video.tiempo\_procesamiento}}{\text{Total de Videos Procesados}}$$ | `Float` (Segundos de duración)<br>Tabla: `videos`<br>Campo: `tiempo_procesamiento_segundos` | Temporizador interno de procesamiento OpenCV e inferencia PyTorch. | **Art. 15**: Optimización de FPS y latencia en hilos secundarios de visión artificial. |
+| **Equipamiento y Cobertura de Infraestructura Vial** | **Tasa de Operatividad de Cámaras de Monitoreo** | `ind_operatividad_camaras` | $$\frac{\text{Cámaras con Estado "online"}}{\text{Total de Cámaras Registradas}} \times 100$$ | `String` (Filtro 'online')<br>Tabla: `cameras`<br>Campo: `status` | Registro de control de latido (*heartbeat*) de red vial IP. | **Art. 10**: Monitoreo de disponibilidad y tolerancia a fallos en redes de cámaras viales. |
+| | **Índice de Cobertura Geográfica de Monitoreo** | `ind_cobertura_geografica` | $$\frac{\text{Intersecciones con Cámaras Online}}{\text{Total de Intersecciones Registradas}} \times 100$$ | `String` (Conteo distinto)<br>Tablas: `cameras` y `locations`<br>Campos: `location_id`, `locations.id` | Base de datos de geolocalización y mapa de intersecciones urbanas. | **Art. 12**: Cobertura espacial óptima y algoritmos multi-cámara en cruces urbanos. |
+| **Gestión de Control y Auditoría Operativa** | **Tasa de Personal de Guardia Activo** | `ind_personal_vial` | $$\frac{\text{Agentes con Asignación de Turno}}{\text{Total de Agentes Viales}} \times 100$$ | `String` (Conteo distinto)<br>Tablas: `officers`, `officer_assignments`<br>Campos: `badge_number` | Sistema de asignación de guardia, turnos y personal policial. | **Art. 18**: Optimización de asignaciones y turnos de personal de tránsito municipal. |
+| | **Volumen de Auditoría de Operaciones** | `ind_auditoria_sistema` | $$\text{Count}(\text{AuditLog.log\_id})$$ | `Integer` (Conteo absoluto)<br>Tabla: `audit_logs`<br>Campo: `log_id` | Bitácora de transacciones del sistema y auditoría de accesos. | **Art. 22**: Firmas criptográficas y registros de auditoría relacional de boletas viales. |
 
 ---
 
@@ -65,9 +67,9 @@ location_coverage_rate = round((unique_locations_online / total_locations * 100)
 
 ### B. Consumo e Interfaz en el Frontend
 El componente de React `VariableOperationalization.jsx` consume estos valores a través de Axios, aplicando filtros de dimensión y maquetándolos en una interfaz interactiva estructurada con clases de CSS específicas (`.matrix-layout`, `.kpi-grid`, `.table-panel`). Los valores de inmovilidad viales e inferencia se representan con colores neón para facilitar la lectura por los operadores:
-* **Glow Indigo**: Representa métricas asociadas a la Visión Artificial e Inferencia.
-* **Glow Violet**: Representa métricas asociadas al Desempeño y Rendimiento Técnico del Servidor.
-* **Glow Cyan**: Representa métricas de la Infraestructura Física y Cámaras Viales.
-* **Glow Green**: Representa métricas de la Auditoría y Personal de Guardia del Sistema.
+*   **Glow Indigo**: Representa métricas asociadas a la Visión Artificial e Inferencia.
+*   **Glow Violet**: Representa métricas asociadas al Desempeño y Rendimiento Técnico del Servidor.
+*   **Glow Cyan**: Representa métricas de la Infraestructura Física y Cámaras Viales.
+*   **Glow Green**: Representa métricas de la Auditoría y Personal de Guardia del Sistema.
 
 Este mapeo directo entre la matriz teórica de investigación y el código fuente proporciona un valor científico único al software, garantizando la trazabilidad absoluta de las variables del proyecto.
